@@ -49,7 +49,7 @@ class LineDataModule(LightningDataModule):
     def prepare_data(self) -> None:
         self.dataset = LineDataset(self.hparams.height, self.hparams.width,
             self.lengths)
-        self.train, self.val = random_split(self.dataset, [0.8, 0.2])
+        self.train, self.val = random_split(self.dataset, [0.5, 0.5])
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.hparams.batch_size, shuffle=True,
