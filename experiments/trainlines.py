@@ -9,7 +9,9 @@ from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
 
 # get data
-traindata = LineDataModule(15, 15, range(3, 11))
+traindata = LineDataModule(15, 15, range(5, 11))
+shorttest = LineDataModule(15, 15, [3])
+longtest = LineDataModule(15, 15, [13])
 
 # define models
 shallow_model = ShallowLinear(15 * 15, 2, loss_fun=torch.nn.functional.cross_entropy, 
@@ -26,6 +28,15 @@ shallow_trainer = pl.Trainer(max_epochs=100)
 deep_trainer = pl.Trainer(max_epochs=100)
 mlp_trainer = pl.Trainer(max_epochs=100)
 
+# train
 shallow_trainer.fit(shallow_model, traindata)
 deep_trainer.fit(deep_model, traindata)
 mlp_trainer.fit(mlp_model, traindata)
+
+# test generalization with shorter and longer lines
+shallow_trainer.test(shallow_model, shorttest)
+shallow_trainer.test(shallow_model, longtest)
+deep_trainer.test(deep_model, shorttest)
+deep_trainer.test(deep_model, longtest)
+mlp_trainer.test(mlp_model, shorttest)
+mlp_trainer.test(mlp_model, longtest)

@@ -58,3 +58,7 @@ class LineDataModule(LightningDataModule):
     def val_dataloader(self) -> Any:
         return DataLoader(self.val, self.hparams.batch_size, shuffle=False,
             num_workers=self.hparams.num_workers)
+    
+    def test_dataloader(self) -> Any:
+        return DataLoader(self.dataset, self.hparams.batch_size, shuffle=False,
+            num_workers=self.hparams.num_workers)
