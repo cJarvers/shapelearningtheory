@@ -38,3 +38,23 @@ class LineDataset(Dataset):
 
     def __len__(self):
         return len(self.lines)
+    
+class LineDataModule(LightningDataModule):
+    def __init__(self, height: int, width: int, lengths: List[int],
+            batch_size: int = 32, num_workers: int = 4):
+        super().__init__()
+        self.lengths = lengths
+        self.save_hyperparameters(ignore=["lengths"])
+
+    def prepare_data(self) -> None:
+        self.dataset = LineDataset(self.hparams.height, self.hparams.width,
+            self.lengths)
+        self.train, self.val = random_split(self.dataset, [0.8, 0.2])
+
+    def train_dataloader(self) -> Any:
+        return DataLoader(self.train, self.hparams.batch_size, shuffle=True,
+            num_workers=self.hparams.num_workers)
+    
+    def val_dataloader(self) -> Any:
+        return DataLoader(self.train, self.hparams.batch_size, shuffle=False,
+            num_workers=self.hparams.num_workers)
