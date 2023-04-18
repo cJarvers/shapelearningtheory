@@ -1,6 +1,7 @@
 import torch
-from torch.utils.data import Dataset
-from typing import List
+from torch.utils.data import Dataset, random_split, DataLoader
+from typing import List, Any
+from pytorch_lightning import LightningDataModule
 # local imports:
 from .shapecategories import Pixel, Orientation, Line
 
@@ -16,16 +17,16 @@ class LineDataset(Dataset):
 
     def generate_all_lines(self):
         lines = []
+        # generate vertical lines
+        for l in self.lengths:
+            for x in range(self.height):
+                for y in range(self.width):
+                    lines.append(Line(Pixel(x, y), l, Orientation.VERTICAL))
         # generate horizontal lines
         for l in self.lengths:
             for x in range(self.height):
-                for y in range(self.width - l + 1):
-                    lines.append(Line(Pixel(x, y), l, Orientation.HORIZONTAL))
-        # generate vertical lines
-        for l in self.lengths:
-            for x in range(self.height - l + 1):
                 for y in range(self.width):
-                    lines.append(Line(Pixel(x, y), l, Orientation.VERTICAL))
+                    lines.append(Line(Pixel(x, y), l, Orientation.HORIZONTAL))
         return lines
 
     def __getitem__(self, idx: int):
