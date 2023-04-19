@@ -59,11 +59,63 @@ class White(SingleColor):
     def colorval(self) -> torch.Tensor:
         return torch.ones(1, 1, 3)
     
+class Grey(SingleColor):
+    def __init__(self, brightness=0.5):
+        super().__init__()
+        self.brightness = brightness
+
+    def colorval(self) -> torch.Tensor:
+        return self.brightness * torch.ones(1, 1, 3)
+    
 class RandomGrey(SingleColor):
     def __init__(self, min=0.5, max=1.0):
+        super().__init__()
         self.min = min
         self.max = max
 
     def colorval(self) -> torch.Tensor:
         c = torch.rand(1).repeat(1, 1, 3) * (self.max - self.min) + self.min
         return c
+    
+
+##################################################################
+# Color class set 2: two classes that are not linearly seperable #
+##################################################################
+class RedXORBlue(Color):
+    """Generates random colors for which either red is between
+    `min` and `max` and blue is between `1-max` and `1-min` or
+    vice versa.
+    """
+    def __init__(self, min=0.9, max=1.0) -> None:
+        super().__init__()
+        self.min = min
+        self.max = max
+
+    def colorval(self) -> torch.Tensor:
+        c = torch.rand(3)
+        if c[0] > c[2]: # red and not blue
+            c[0] = c[0] * (self.max - self.min) + self.min
+            c[2] = 1.0 - (c[2] * (self.max - self.min) + self.min)
+        else: # blue and not red
+            c[2] = c[2] * (self.max - self.min) + self.min
+            c[0] = 1.0 - (c[0] * (self.max - self.min) + self.min)
+        return c.reshape(1, 1, 3)
+    
+class NotRedXORBlue(Color):
+    """Generates random colors for which red and blue are either
+    both between `min` and `max` or both between `1-max` and `1-min`.
+    """
+    def __init__(self, min=0.9, max=1.0) -> None:
+        super().__init__()
+        self.min = min
+        self.max = max
+
+    def colorval(self) -> torch.Tensor:
+        c = torch.rand(3)
+        if c[1] < 0.5: # red and blue both "on"; conditioning on green channel prevents very low intensities
+            c[0] = c[0] * (self.max - self.min) + self.min
+            c[2] = c[2] * (self.max - self.min) + self.min
+        else: # red and blue both "off"
+            c[0] = 1.0 - (c[0] * (self.max - self.min) + self.min)
+            c[2] = 1.0 - (c[2] * (self.max - self.min) + self.min)
+        return c.reshape(1, 1, 3)
