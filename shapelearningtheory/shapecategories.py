@@ -2,6 +2,8 @@
 from enum import Enum
 import torch
 
+from .colorcategories import Color
+
 ######################################################
 # Image primitives from which shapes are constructed #
 ######################################################
@@ -41,7 +43,7 @@ class Line:
         else:
             return Pixel(self.start.x, self.start.y + self.length)
         
-    def draw_to_tensor(self, t: torch.Tensor, wrap=True) -> torch.Tensor:
+    def draw_to_tensor(self, t: torch.Tensor, wrap: bool=True) -> torch.Tensor:
         if self.orientation == Orientation.HORIZONTAL:
             x_min = self.start.x
             x_max = self.start.x + self.length
@@ -58,6 +60,28 @@ class Line:
                 t[x, 0:y_max - t.size(1)] = 1.0
         return t
 
+class ColorLine(Line):
+    """Line with a specific color, determined by the given color class."""
+    def __init__(self, start: Pixel, length: int, orientation: Orientation, color: Color) -> None:
+        super().__init__(start, length, orientation)
+        self.color = color.colorval() # Sample color value in constructor so it is constant if we draw_to_tensor several times
+
+    def draw_to_tensor(self, t: torch.Tensor, wrap: bool=True) -> torch.Tensor:
+        if self.orientation == Orientation.HORIZONTAL:
+            x_min = self.start.x
+            x_max = self.start.x + self.length
+            y = self.start.y
+            t[x_min:x_max, y] = self.color
+            if wrap and x_max > t.size(0):
+                t[0:x_max - t.size(0), y] = self.color
+        else:
+            y_min = self.start.y
+            y_max = self.start.y + self.length
+            x = self.start.x
+            t[x, y_min:y_max] = self.color
+            if wrap and y_max > t.size(1):
+                t[x, 0:y_max - t.size(1)] = self.color
+        return t
 
 ##############################
 # Shape classes / categories #

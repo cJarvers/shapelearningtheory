@@ -7,19 +7,21 @@ sys.path.append("..")
 from shapelearningtheory.linedataset import LineDataModule
 from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
+from shapelearningtheory.colorcategories import White
 
 # get data
 traindata = LineDataModule(15, 15, range(5, 11))
 shorttest = LineDataModule(15, 15, [3])
 longtest = LineDataModule(15, 15, [13])
+whitetest = LineDataModule(15, 15, [7], horizontalcolor=White, verticalcolor=White)
 
 # define models
-shallow_model = ShallowLinear(15 * 15, 2, loss_fun=torch.nn.functional.cross_entropy, 
+shallow_model = ShallowLinear(15 * 15 * 3, 2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-deep_model = DeepLinear(num_inputs=15 * 15, num_hidden=1000, num_layers=3,
+deep_model = DeepLinear(num_inputs=15 * 15 * 3, num_hidden=1000, num_layers=3,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-mlp_model = MLP(num_inputs=15 * 15, num_hidden=1000, num_layers=3,
+mlp_model = MLP(num_inputs=15 * 15 * 3, num_hidden=1000, num_layers=3,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
 
@@ -36,7 +38,10 @@ mlp_trainer.fit(mlp_model, traindata)
 # test generalization with shorter and longer lines
 shallow_trainer.test(shallow_model, shorttest)
 shallow_trainer.test(shallow_model, longtest)
+shallow_trainer.test(shallow_model, whitetest)
 deep_trainer.test(deep_model, shorttest)
 deep_trainer.test(deep_model, longtest)
+deep_trainer.test(deep_model, whitetest)
 mlp_trainer.test(mlp_model, shorttest)
 mlp_trainer.test(mlp_model, longtest)
+mlp_trainer.test(mlp_model, whitetest)
