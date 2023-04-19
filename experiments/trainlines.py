@@ -14,7 +14,7 @@
 # We train / test the following networks:
 # - shallow_linear: a one-layer linear network (currently disabled since color/shape classes are not linearly seperable)
 # - deep_linear: a multi-layer linear network (currently disabled since color/shape classes are not linearly seperable)
-# - mlp: a 3-layer MLP
+# - mlp: a multi-layer perceptron; number of layers is controlled by variable num_layers
 #
 #
 # Observations:
@@ -41,29 +41,40 @@ from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
 from shapelearningtheory.colorcategories import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
+# hyper-parameters for the task
 color1 = RedXORBlue # RandomRed
 color2 = NotRedXORBlue # RandomBlue
+imgsize = 15
+short = 3
+long = 13
+# hyper-parameters for the networks
+num_layers = 3
+num_hidden = 1000
+# hyper-parameters for training
+epochs = 100
 
 # get data:
 # training dataset
-traindata = LineDataModule(15, 15, range(5, 11), horizontalcolor=color1, verticalcolor=color2)
-# traindata = SquaresDataModule(15, 15, range(3, 7), color1=color1, color2=color2) # alternative version: use squares to check that networks really can learn to distinguish the colors
+traindata = LineDataModule(imgsize, imgsize, range(short+2, long-2), horizontalcolor=color1, verticalcolor=color2)
+# alternative version: use squares to check that networks really can learn to distinguish the colors
+#traindata = SquaresDataModule(imgsize, imgsize, range(short, (short+long)//2), color1=color1, color2=color2) 
+#
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
-    "short": LineDataModule(15, 15, [3], horizontalcolor=color1, verticalcolor=color2), # shorter lines, correct color
-    "long": LineDataModule(15, 15, [13], horizontalcolor=color1, verticalcolor=color2), # longer lines, correct color
-    "coloronly": SquaresDataModule(15, 15, [5], color1=color1, color2=color2), # correct color, but squares instead of lines (cannot classify by shape)
-    "grey": LineDataModule(15, 15, [7], horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
-    "conflict": LineDataModule(15, 15, [7], horizontalcolor=color2, verticalcolor=color1) # medium length lines, incorrect color
+    "short": LineDataModule(imgsize, imgsize, [short], horizontalcolor=color1, verticalcolor=color2), # shorter lines, correct color
+    "long": LineDataModule(imgsize, imgsize, [long], horizontalcolor=color1, verticalcolor=color2), # longer lines, correct color
+    "coloronly": SquaresDataModule(imgsize, imgsize, [short+2], color1=color1, color2=color2), # correct color, but squares instead of lines (cannot classify by shape)
+    "grey": LineDataModule(imgsize, imgsize, [(short + long)//2], horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
+    "conflict": LineDataModule(imgsize, imgsize, [(short + long)//2], horizontalcolor=color2, verticalcolor=color1) # medium length lines, incorrect color
 }
 
 # define models
-shallow_model = ShallowLinear(15 * 15 * 3, 2, loss_fun=torch.nn.functional.cross_entropy, 
+shallow_model = ShallowLinear(imgsize * imgsize * 3, 2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-deep_model = DeepLinear(num_inputs=15 * 15 * 3, num_hidden=1000, num_layers=3,
+deep_model = DeepLinear(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-mlp_model = MLP(num_inputs=15 * 15 * 3, num_hidden=1000, num_layers=3,
+mlp_model = MLP(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
 models = {
@@ -73,7 +84,7 @@ models = {
 }
 
 # initialize trainers
-trainers = {name: pl.Trainer(max_epochs=100) for name in models.keys()}
+trainers = {name: pl.Trainer(max_epochs=epochs) for name in models.keys()}
 
 # train
 for name, model in models.items():
