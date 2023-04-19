@@ -83,6 +83,35 @@ class ColorLine(Line):
                 t[x, 0:y_max - t.size(1)] = self.color
         return t
 
+
+class ColorSquare:
+    def __init__(self, start: Pixel, sidelength: int, color: Color):
+        self.start = start
+        self.sidelength = sidelength
+        self.color = color.colorval()
+
+    def all_pixels(self):
+        return [Pixel(x, y)
+                for x in range(self.start.x, self.start.x + self.sidelength)
+                for y in range(self.start.y, self.start.y + self.sidelength)]
+    
+    def draw_to_tensor(self, t: torch.Tensor, wrap: bool=True) -> torch.Tensor:
+        x_min = self.start.x
+        x_max = self.start.x + self.sidelength
+        y_min = self.start.y
+        y_max = self.start.y + self.sidelength
+        t[x_min:x_max, y_min:y_max] = self.color
+        if wrap:
+            if x_max > t.size(0):
+                t[0:x_max - t.size(0), y_min:y_max] = self.color
+            if y_max > t.size(1):
+                t[x_min:x_max, 0:y_max - t.size(1)] = self.color
+            if x_max > t.size(0) and y_max > t.size(1):
+                t[0:x_max - t.size(0), 0:y_max - t.size(1)] = self.color
+
+
+
+
 ##############################
 # Shape classes / categories #
 ##############################

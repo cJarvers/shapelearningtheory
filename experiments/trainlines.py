@@ -5,9 +5,10 @@ import sys
 # local imports
 sys.path.append("..")
 from shapelearningtheory.linedataset import LineDataModule
+from shapelearningtheory.squaredataset import SquaresDataModule
 from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
-from shapelearningtheory.colorcategories import White, Grey, RedXORBlue, NotRedXORBlue
+from shapelearningtheory.colorcategories import Grey, RedXORBlue, NotRedXORBlue
 
 # get data:
 # training dataset
@@ -16,6 +17,7 @@ traindata = LineDataModule(15, 15, range(5, 11), horizontalcolor=RedXORBlue, ver
 test_sets = {
     "short": LineDataModule(15, 15, [3], horizontalcolor=RedXORBlue, verticalcolor=NotRedXORBlue), # shorter lines, correct color
     "long": LineDataModule(15, 15, [13], horizontalcolor=RedXORBlue, verticalcolor=NotRedXORBlue), # longer lines, correct color
+    "coloronly": SquaresDataModule(15, 15, [5], color1=RedXORBlue, color2=NotRedXORBlue), # correct color, but squares instead of lines (cannot classify by shape)
     "grey": LineDataModule(15, 15, [7], horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
     "conflict": LineDataModule(15, 15, [7], horizontalcolor=NotRedXORBlue, verticalcolor=RedXORBlue) # medium length lines, incorrect color
 }
