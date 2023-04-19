@@ -40,7 +40,7 @@ class SquareDataset(Dataset):
         for l in self.sidelengths:
             for x in range(self.height):
                 for y in range(self.width):
-                    squares2.append(ColorSquare(start=Pixel(x, y), sidelength=l, color=self.color1()))
+                    squares2.append(ColorSquare(start=Pixel(x, y), sidelength=l, color=self.color2()))
         return squares1, squares2
 
     def __getitem__(self, idx: int):
