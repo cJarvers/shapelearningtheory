@@ -43,7 +43,7 @@ class LineDataset(Dataset):
 
     def __getitem__(self, idx: int):
         line = self.lines[idx]
-        label = 1 if line.orientation == Orientation.HORIZONTAL else 0
+        label = 0 if line.orientation == Orientation.HORIZONTAL else 1
         image = torch.zeros(self.width, self.height, 3)
         line.draw_to_tensor(image)
         return image, label
