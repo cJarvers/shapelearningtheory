@@ -84,22 +84,39 @@ class ColorLine(Line):
         return t
 
 
-class ColorSquare:
-    def __init__(self, start: Pixel, sidelength: int, color: Color):
+class Rectangle:
+    """
+    A horizontal or vertical rectangle.
+    
+    Args:
+        start: pixel value of the bottom left corner
+        length: number of pixels along the longer side"""
+    def __init__(self, start: Pixel, length: int, width: int, orientation: Orientation):
         self.start = start
-        self.sidelength = sidelength
-        self.color = color.colorval()
+        assert length > width, "Length of a rectangle must be larger than width"
+        self.length = length
+        self.width = width
+        self.orientation = orientation
+        self.color = 1.0
 
+    def _get_x_y(self):
+        x_min, y_min = self.start.x, self.start.y
+        if self.orientation == Orientation.HORIZONTAL:
+            x_max = x_min + self.length
+            y_max = y_min + self.width
+        else:
+            x_max = x_min + self.width
+            y_max = y_min + self.length
+        return x_min, x_max, y_min, y_max
+    
     def all_pixels(self):
+        x_min, x_max, y_min, y_max = self._get_x_y()
         return [Pixel(x, y)
-                for x in range(self.start.x, self.start.x + self.sidelength)
-                for y in range(self.start.y, self.start.y + self.sidelength)]
+            for x in range(x_min, x_max)
+            for y in range(y_min, y_max)]
     
     def draw_to_tensor(self, t: torch.Tensor, wrap: bool=True) -> torch.Tensor:
-        x_min = self.start.x
-        x_max = self.start.x + self.sidelength
-        y_min = self.start.y
-        y_max = self.start.y + self.sidelength
+        x_min, x_max, y_min, y_max = self._get_x_y()
         t[x_min:x_max, y_min:y_max] = self.color
         if wrap:
             if x_max > t.size(0):
@@ -110,7 +127,19 @@ class ColorSquare:
                 t[0:x_max - t.size(0), 0:y_max - t.size(1)] = self.color
 
 
+class ColorRectangle(Rectangle):
+    def __init__(self, start: Pixel, length: int, width: int, orientation: Orientation, color: Color):
+        super().__init__(start, length, width, orientation)
+        self.color = color.colorval()
 
+
+class ColorSquare(ColorRectangle):
+    def __init__(self, start: Pixel, sidelength: int, color: Color):
+        self.start = start
+        self.length = sidelength
+        self.width = sidelength
+        self.orientation = Orientation.HORIZONTAL # for compatibility with parent class, but irrelevant
+        self.color = color.colorval()
 
 ##############################
 # Shape classes / categories #
