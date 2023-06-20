@@ -14,9 +14,9 @@ class SquareDataset(Dataset):
         - width: int - width of output images
         - sidelengths: List[int] - side lengths of squares to generate
         - color1: Type[Color] - color type for class 1
-        - verticalcolor: Type[Color] - color type for class 2
+        - color2: Type[Color] - color type for class 2
     """
-    def __init__(self, height: int, width: int, sidelengths=List[int],
+    def __init__(self, height: int, width: int, sidelengths: List[int],
             color1: Type[Color] = RandomRed, color2: Type[Color] = RandomBlue) -> None:
         super().__init__()
         self.height = height
