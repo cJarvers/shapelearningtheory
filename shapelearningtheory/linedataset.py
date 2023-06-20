@@ -55,7 +55,8 @@ class LineDataModule(LightningDataModule):
     def __init__(self, height: int, width: int, lengths: List[int],
             batch_size: int = 32, num_workers: int = 4,
             horizontalcolor: Type[Color] = RandomRed,
-            verticalcolor: Type[Color] = RandomBlue):
+            verticalcolor: Type[Color] = RandomBlue,
+            validation_ratio: float = 0.0):
         super().__init__()
         self.lengths = lengths
         self.horizontalcolor = horizontalcolor
@@ -66,7 +67,9 @@ class LineDataModule(LightningDataModule):
         self.dataset = LineDataset(self.hparams.height, self.hparams.width,
             self.lengths, horizontalcolor=self.horizontalcolor,
             verticalcolor=self.verticalcolor)
-        self.train, self.val = random_split(self.dataset, [0.5, 0.5])
+        p_train = 1.0 - self.hparams.validation_ratio
+        p_val = self.hparams.validation_ratio
+        self.train, self.val = random_split(self.dataset, [p_train, p_val])
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.hparams.batch_size, shuffle=True,

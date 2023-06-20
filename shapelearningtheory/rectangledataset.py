@@ -78,7 +78,8 @@ class ColorRectangleDataModule(LightningDataModule):
     def __init__(self, imgheight:int, imgwidth: int, lengths: List[int],
             widths: List[int], batch_size: int = 32, num_workers: int = 4,
             color1: Type[Color] = RandomRed,
-            color2: Type[Color] = RandomBlue):
+            color2: Type[Color] = RandomBlue,
+            validation_ratio: float = 0.0):
         super().__init__()
         self.lengths = lengths
         self.widths = widths
@@ -91,7 +92,9 @@ class ColorRectangleDataModule(LightningDataModule):
             self.hparams.imgheight, self.hparams.imgwidth, self.lengths,
             self.widths, self.color1, self.color2
         )
-        self.train, self.val = random_split(self.dataset, [0.5, 0.5])
+        p_train = 1.0 - self.hparams.validation_ratio
+        p_val = self.hparams.validation_ratio
+        self.train, self.val = random_split(self.dataset, [p_train, p_val])
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.hparams.batch_size, shuffle=True,

@@ -63,11 +63,12 @@ traindata = LineDataModule(imgsize, imgsize, range(short+2, long-2), horizontalc
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
-    "short": LineDataModule(imgsize, imgsize, [short], horizontalcolor=color1, verticalcolor=color2), # shorter lines, correct color
-    "long": LineDataModule(imgsize, imgsize, [long], horizontalcolor=color1, verticalcolor=color2), # longer lines, correct color
-    "coloronly": SquaresDataModule(imgsize, imgsize, [short+2], color1=color1, color2=color2), # correct color, but squares instead of lines (cannot classify by shape)
-    "grey": LineDataModule(imgsize, imgsize, [(short + long)//2], horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
-    "conflict": LineDataModule(imgsize, imgsize, [(short + long)//2], horizontalcolor=color2, verticalcolor=color1) # medium length lines, incorrect color
+    #"short": LineDataModule(imgsize, imgsize, [short], horizontalcolor=color1, verticalcolor=color2), # shorter lines, correct color
+    #"long": LineDataModule(imgsize, imgsize, [long], horizontalcolor=color1, verticalcolor=color2), # longer lines, correct color
+    "traindata": traindata,
+    "color only": SquaresDataModule(imgsize, imgsize, range(short+2, long-2), color1=color1, color2=color2), # correct color, but squares instead of lines (cannot classify by shape)
+    "shape only": LineDataModule(imgsize, imgsize, range(short+2, long-2), horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
+    "conflict": LineDataModule(imgsize, imgsize, range(short+2, long-2), horizontalcolor=color2, verticalcolor=color1) # medium length lines, incorrect color
 }
 
 # define models

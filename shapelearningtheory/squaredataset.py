@@ -62,7 +62,8 @@ class SquaresDataModule(LightningDataModule):
     def __init__(self, height: int, width: int, lengths: List[int],
             batch_size: int = 32, num_workers: int = 4,
             color1: Type[Color] = RandomRed,
-            color2: Type[Color] = RandomBlue):
+            color2: Type[Color] = RandomBlue,
+            validation_ratio: float = 0.0):
         super().__init__()
         self.lengths = lengths
         self.color1 = color1
@@ -73,7 +74,9 @@ class SquaresDataModule(LightningDataModule):
         self.dataset = SquareDataset(self.hparams.height, self.hparams.width,
             self.lengths, color1=self.color1,
             color2=self.color2)
-        self.train, self.val = random_split(self.dataset, [0.5, 0.5])
+        p_train = 1.0 - self.hparams.validation_ratio
+        p_val = self.hparams.validation_ratio
+        self.train, self.val = random_split(self.dataset, [p_train, p_val])
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.hparams.batch_size, shuffle=True,

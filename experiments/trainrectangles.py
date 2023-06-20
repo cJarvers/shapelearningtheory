@@ -31,6 +31,7 @@ traindata = ColorRectangleDataModule(imgsize, imgsize, range(minlength, maxlengt
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
+    "traindata": traindata,
     "color only": SquaresDataModule(imgsize, imgsize, range(minwidth, maxlength), color1=color1, color2=color2), # correct color, but squares instead of rectangles (cannot classify by shape)
     "shape only": ColorRectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), color1=Grey, color2=Grey), # same rectangles but no color
     "conflict": ColorRectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), color1=color2, color2=color1) # same rectangles, incorrect color
