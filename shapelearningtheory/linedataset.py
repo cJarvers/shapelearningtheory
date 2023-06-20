@@ -46,7 +46,7 @@ class LineDataset(Dataset):
         label = 0 if line.orientation == Orientation.HORIZONTAL else 1
         image = torch.zeros(self.width, self.height, 3)
         line.draw_to_tensor(image)
-        return image, label
+        return image.permute(2,0,1), label
 
     def __len__(self):
         return len(self.lines)

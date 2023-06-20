@@ -39,11 +39,12 @@ from shapelearningtheory.linedataset import LineDataModule
 from shapelearningtheory.squaredataset import SquaresDataModule
 from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
+from shapelearningtheory.convnet import SimpleConvNet
 from shapelearningtheory.colorcategories import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
 # hyper-parameters for the task
-color1 = RedXORBlue # RandomRed
-color2 = NotRedXORBlue # RandomBlue
+color1 = RedXORBlue # RandomRed # 
+color2 = NotRedXORBlue # RandomBlue # 
 imgsize = 15
 short = 3
 long = 13
@@ -77,10 +78,14 @@ deep_model = DeepLinear(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden,
 mlp_model = MLP(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
+simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
+    in_channels=3, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
+    metric=Accuracy("multiclass", num_classes=2))
 models = {
     # "shallow_linear": shallow_model,
     # "deep_linear": deep_model,
-    "mlp": mlp_model
+    #"mlp": mlp_model,
+    "conv": simpleconv_model
 }
 
 # initialize trainers

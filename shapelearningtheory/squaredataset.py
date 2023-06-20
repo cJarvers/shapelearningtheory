@@ -52,7 +52,7 @@ class SquareDataset(Dataset):
             square = self.squares2[idx - self.num_class1]
         image = torch.zeros(self.width, self.height, 3)
         square.draw_to_tensor(image)
-        return image, label
+        return image.permute(2,0,1), label
 
     def __len__(self):
         return self.num_class1 + self.num_class2
