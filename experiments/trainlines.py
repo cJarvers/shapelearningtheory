@@ -15,6 +15,7 @@
 # - shallow_linear: a one-layer linear network (currently disabled since color/shape classes are not linearly seperable)
 # - deep_linear: a multi-layer linear network (currently disabled since color/shape classes are not linearly seperable)
 # - mlp: a multi-layer perceptron; number of layers is controlled by variable num_layers
+# - conv: a simple convolutional network with three convolutional layers, global average pooling, and one fc layer
 #
 #
 # Observations:
@@ -82,9 +83,9 @@ simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[
     in_channels=3, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
 models = {
-    # "shallow_linear": shallow_model,
-    # "deep_linear": deep_model,
-    #"mlp": mlp_model,
+    "shallow_linear": shallow_model,
+    "deep_linear": deep_model,
+    "mlp": mlp_model,
     "conv": simpleconv_model
 }
 
