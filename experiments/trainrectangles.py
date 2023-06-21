@@ -8,6 +8,7 @@ from shapelearningtheory.rectangledataset import ColorRectangleDataModule
 from shapelearningtheory.squaredataset import SquaresDataModule
 from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
+from shapelearningtheory.autoencoder import AutoEncoder
 from shapelearningtheory.convnet import SimpleConvNet
 from shapelearningtheory.colorcategories import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
@@ -49,11 +50,14 @@ mlp_model = MLP(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_lay
 simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
     in_channels=3, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
+autoencoder = AutoEncoder(input_dim=imgsize * imgsize * 3, hidden_dims=[num_hidden, num_hidden],
+    representation_dim=100, num_classes=2)
 models = {
     "shallow_linear": shallow_model,
     "deep_linear": deep_model,
     "mlp": mlp_model,
-    "conv": simpleconv_model
+    "conv": simpleconv_model,
+    "autoencoder": autoencoder
 }
 
 # initialize trainers
