@@ -59,7 +59,7 @@ class AutoEncoder(pl.LightningModule):
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         representation = self.encoder(x)
-        prediction = self.classifier(representation)
+        prediction = self.classifier(representation.detach())
         reconstruction = self.decoder(representation)
         return reconstruction, prediction
     
@@ -83,10 +83,10 @@ class AutoEncoder(pl.LightningModule):
             self.log("train_metric", accuracy)
         # apply optimizers
         autoencode_optimizer.zero_grad()
-        classify_optimizer.zero_grad()
-        self.manual_backward(reconstruction_loss, retain_graph=True)
-        self.manual_backward(classification_loss)
+        self.manual_backward(reconstruction_loss)
         autoencode_optimizer.step()
+        classify_optimizer.zero_grad()
+        self.manual_backward(classification_loss)
         classify_optimizer.step()
 
     @torch.no_grad()
