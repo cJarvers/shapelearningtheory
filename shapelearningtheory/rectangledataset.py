@@ -4,7 +4,8 @@ from typing import Any, List, Type
 from pytorch_lightning import LightningDataModule
 # local imports
 from .colorcategories import Color, RandomRed, RandomBlue
-from .shapecategories import ColorRectangle, Pixel, Orientation
+from .shapecategories import Pixel, Orientation, Rectangle
+from .stimuli import Stimulus
 
 class ColorRectangleDataset(Dataset):
     """
@@ -41,34 +42,37 @@ class ColorRectangleDataset(Dataset):
                     for x in range(self.imgheight):
                         for y in range(self.imgwidth):
                             horizontal.append(
-                                ColorRectangle(
-                                    start=Pixel(x, y),
-                                    length=l,
-                                    width=w,
-                                    orientation=Orientation.HORIZONTAL,
-                                    color=self.color1()
+                                Stimulus(
+                                    shape=Rectangle(
+                                        start=Pixel(x, y),
+                                        length=l,
+                                        width=w,
+                                        orientation=Orientation.HORIZONTAL
+                                    ),
+                                    pattern=self.color1()
                                 )
                             )
                             vertical.append(
-                                ColorRectangle(
-                                    start=Pixel(x, y),
-                                    length=l,
-                                    width=w,
-                                    orientation=Orientation.VERTICAL,
-                                    color=self.color2()
+                                Stimulus(
+                                    shape=Rectangle(
+                                        start=Pixel(x, y),
+                                        length=l,
+                                        width=w,
+                                        orientation=Orientation.VERTICAL
+                                    ),
+                                    pattern=self.color2()
                                 )
                             )
         return horizontal + vertical
     
     def __getitem__(self, index: int) -> Any:
         rectangle = self.rectangles[index]
-        if rectangle.orientation == Orientation.HORIZONTAL:
+        if rectangle.shape.orientation == Orientation.HORIZONTAL:
             label = 0
         else:
             label = 1
-        image = torch.zeros(self.imgwidth, self.imgheight, 3)
-        rectangle.draw_to_tensor(image)
-        return image.permute(2,0,1), label
+        image = rectangle.create_image(self.imgheight, self.imgwidth)
+        return image, label
     
     def __len__(self):
         return len(self.rectangles)

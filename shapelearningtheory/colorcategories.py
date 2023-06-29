@@ -1,10 +1,15 @@
 # Defines different color classes used to generate artificial training stimuli.
 import torch
+from torch import Tensor
 
 class Color:
     "Base class"
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         raise NotImplementedError
+    
+    def fill_tensor(self, height, width) -> Tensor:
+        img = torch.zeros((3, height, width))
+        return img + self.colorval().reshape(3,1,1)
 
 ################################################
 # Color class set 1: reds vs. greens vs. blues #
@@ -21,7 +26,7 @@ class RandomRed(SingleColor):
         self.min = min
         self.max = max
 
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         c = torch.zeros(1, 1, 3)
         c[0, 0, 0] = torch.rand(1) * (self.max - self.min) + self.min
         return c
@@ -35,7 +40,7 @@ class RandomGreen(SingleColor):
         self.min = min
         self.max = max
 
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         c = torch.zeros(1, 1, 3)
         c[0, 0, 1] = torch.rand(1) * (self.max - self.min) + self.min
         return c
@@ -49,14 +54,14 @@ class RandomBlue(SingleColor):
         self.min = min
         self.max = max
 
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         c = torch.zeros(1, 1, 3)
         c[0, 0, 2] = torch.rand(1) * (self.max - self.min) + self.min
         return c
 
 # White / grey versions of SingleColors for testing generalization
 class White(SingleColor):
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         return torch.ones(1, 1, 3)
     
 class Grey(SingleColor):
@@ -64,7 +69,7 @@ class Grey(SingleColor):
         super().__init__()
         self.brightness = brightness
 
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         return self.brightness * torch.ones(1, 1, 3)
     
 class RandomGrey(SingleColor):
@@ -73,7 +78,7 @@ class RandomGrey(SingleColor):
         self.min = min
         self.max = max
 
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         c = torch.rand(1).repeat(1, 1, 3) * (self.max - self.min) + self.min
         return c
     
@@ -91,7 +96,7 @@ class RedXORBlue(Color):
         self.min = min
         self.max = max
 
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         c = torch.rand(3)
         if c[0] > c[2]: # red and not blue
             c[0] = c[0] * (self.max - self.min) + self.min
@@ -110,7 +115,7 @@ class NotRedXORBlue(Color):
         self.min = min
         self.max = max
 
-    def colorval(self) -> torch.Tensor:
+    def colorval(self) -> Tensor:
         c = torch.rand(3)
         if c[1] < 0.5: # red and blue both "on"; conditioning on green channel prevents very low intensities
             c[0] = c[0] * (self.max - self.min) + self.min

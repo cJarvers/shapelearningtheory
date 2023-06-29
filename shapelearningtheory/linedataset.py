@@ -3,8 +3,9 @@ from torch.utils.data import Dataset, random_split, DataLoader
 from typing import List, Any, Type
 from pytorch_lightning import LightningDataModule
 # local imports:
-from .shapecategories import Pixel, Orientation, ColorLine
+from .shapecategories import Pixel, Orientation, Line
 from .colorcategories import Color, White, RandomRed, RandomBlue
+from .stimuli import Stimulus
 
 class LineDataset(Dataset):
     """Dataset for classifying horizontal and vertical lines. Horizontal and
@@ -33,20 +34,29 @@ class LineDataset(Dataset):
         for l in self.lengths:
             for x in range(self.height):
                 for y in range(self.width):
-                    lines.append(ColorLine(Pixel(x, y), l, Orientation.VERTICAL, self.verticalcolor()))
+                    lines.append(
+                        Stimulus(
+                            shape=Line(Pixel(x, y), l, Orientation.VERTICAL),
+                            pattern=self.verticalcolor()
+                        )
+                    )
         # generate horizontal lines
         for l in self.lengths:
             for x in range(self.height):
                 for y in range(self.width):
-                    lines.append(ColorLine(Pixel(x, y), l, Orientation.HORIZONTAL, self.horizontalcolor()))
+                    lines.append(
+                        Stimulus(
+                            shape=Line(Pixel(x, y), l, Orientation.HORIZONTAL),
+                            pattern=self.horizontalcolor()
+                        )
+                    )
         return lines
 
     def __getitem__(self, idx: int):
         line = self.lines[idx]
-        label = 0 if line.orientation == Orientation.HORIZONTAL else 1
-        image = torch.zeros(self.width, self.height, 3)
-        line.draw_to_tensor(image)
-        return image.permute(2,0,1), label
+        label = 0 if line.shape.orientation == Orientation.HORIZONTAL else 1
+        image = line.create_image(self.height, self.width)
+        return image, label
 
     def __len__(self):
         return len(self.lines)

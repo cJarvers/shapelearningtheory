@@ -3,8 +3,9 @@ from torch.utils.data import Dataset, random_split, DataLoader
 from typing import List, Any, Type
 from pytorch_lightning import LightningDataModule
 # local imports:
-from .shapecategories import Pixel, ColorSquare
+from .shapecategories import Pixel, Square
 from .colorcategories import Color, RandomRed, RandomBlue
+from .stimuli import Stimulus
 
 class SquareDataset(Dataset):
     """Dataset for classifying squares according to color
@@ -34,13 +35,23 @@ class SquareDataset(Dataset):
         for l in self.sidelengths:
             for x in range(self.height):
                 for y in range(self.width):
-                    squares1.append(ColorSquare(start=Pixel(x, y), sidelength=l, color=self.color1()))
+                    squares1.append(
+                        Stimulus(
+                            shape=Square(start=Pixel(x, y), sidelength=l),
+                            pattern=self.color1()
+                        )
+                    )
         # generate class 2
         squares2 = []
         for l in self.sidelengths:
             for x in range(self.height):
                 for y in range(self.width):
-                    squares2.append(ColorSquare(start=Pixel(x, y), sidelength=l, color=self.color2()))
+                    squares2.append(
+                        Stimulus(
+                            shape=Square(start=Pixel(x, y), sidelength=l),
+                            pattern=self.color2()
+                        )
+                    )
         return squares1, squares2
 
     def __getitem__(self, idx: int):
@@ -50,9 +61,8 @@ class SquareDataset(Dataset):
         else:
             label = 1
             square = self.squares2[idx - self.num_class1]
-        image = torch.zeros(self.width, self.height, 3)
-        square.draw_to_tensor(image)
-        return image.permute(2,0,1), label
+        image = square.create_image(self.height, self.width)
+        return image, label
 
     def __len__(self):
         return self.num_class1 + self.num_class2
