@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import sys
 # local imports
 sys.path.append("..")
-from shapelearningtheory.rectangledataset import ColorRectangleDataModule
+from shapelearningtheory.rectangledataset import RectangleDataModule
 from shapelearningtheory.squaredataset import SquaresDataModule
 from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
@@ -28,14 +28,14 @@ epochs = 100
 
 # get data:
 # training dataset
-traindata = ColorRectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), color1=color1, color2=color2)
+traindata = RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=color1, color2=color2)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
     "color only": SquaresDataModule(imgsize, imgsize, range(minwidth, maxlength), color1=color1, color2=color2), # correct color, but squares instead of rectangles (cannot classify by shape)
-    "shape only": ColorRectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), color1=Grey, color2=Grey), # same rectangles but no color
-    "conflict": ColorRectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), color1=color2, color2=color1) # same rectangles, incorrect color
+    "shape only": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=Grey, color2=Grey), # same rectangles but no color
+    "conflict": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), color1=color2, color2=color1) # same rectangles, incorrect color
 }
 
 # define models

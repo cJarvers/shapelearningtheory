@@ -5,31 +5,33 @@ from pytorch_lightning import LightningDataModule
 # local imports
 from .colors import Color, RandomRed, RandomBlue
 from .shapes import Pixel, Orientation, Rectangle
+from .textures import Texture
 from .stimuli import Stimulus
 
-class ColorRectangleDataset(Dataset):
+class RectangleDataset(Dataset):
     """
     Dataset for classifying recangles according to orientation (whether they are
-    higher than wide or wider than high) and color.
+    higher than wide or wider than high) and color or texture.
 
     Args:
         - imgheight: int - height of output images
         - imgwidth: int - width of output images
         - lenghts: List[int] - lengths of longer sides for which to generate rectangles
         - widths: List[int] - lengths of shorter sides for which to generate rectangles
-        - color1: Type[Color] - color type for class 1
-        - color2: Type[Color] - color type for class 2
+        - pattern1: Type[Color] | Type[Texture] - color or texture type for class 1
+        - pattern2: Type[Color] | Type[Texture] - color or texture type for class 2
     """
     def __init__(self, imgheight: int, imgwidth: int, lengths: List[int],
-            widths: List[int], color1: Type[Color], color2: Type[Color]):
+            widths: List[int], pattern1: Type[Color] | Type[Texture],
+            pattern2: Type[Color] | Type[Texture]):
         super().__init__()
         # store parameters
         self.imgheight = imgheight
         self.imgwidth = imgwidth
         self.lengths = lengths
         self.widths = widths
-        self.color1 = color1
-        self.color2 = color2
+        self.pattern1 = pattern1
+        self.pattern2 = pattern2
         # generate dataset
         self.rectangles = self.generate_all_rectangles()
 
@@ -49,7 +51,7 @@ class ColorRectangleDataset(Dataset):
                                         width=w,
                                         orientation=Orientation.HORIZONTAL
                                     ),
-                                    pattern=self.color1()
+                                    pattern=self.pattern1()
                                 )
                             )
                             vertical.append(
@@ -60,7 +62,7 @@ class ColorRectangleDataset(Dataset):
                                         width=w,
                                         orientation=Orientation.VERTICAL
                                     ),
-                                    pattern=self.color2()
+                                    pattern=self.pattern2()
                                 )
                             )
         return horizontal + vertical
@@ -78,23 +80,23 @@ class ColorRectangleDataset(Dataset):
         return len(self.rectangles)
 
 
-class ColorRectangleDataModule(LightningDataModule):
+class RectangleDataModule(LightningDataModule):
     def __init__(self, imgheight:int, imgwidth: int, lengths: List[int],
             widths: List[int], batch_size: int = 32, num_workers: int = 4,
-            color1: Type[Color] = RandomRed,
-            color2: Type[Color] = RandomBlue,
+            pattern1: Type[Color] = RandomRed,
+            pattern2: Type[Color] = RandomBlue,
             validation_ratio: float = 0.0):
         super().__init__()
         self.lengths = lengths
         self.widths = widths
-        self.color1 = color1
-        self.color2 = color2
+        self.pattern1 = pattern1
+        self.pattern2 = pattern2
         self.save_hyperparameters(ignore=["lengths", "widths"])
 
     def prepare_data(self) -> None:
-        self.dataset = ColorRectangleDataset(
+        self.dataset = RectangleDataset(
             self.hparams.imgheight, self.hparams.imgwidth, self.lengths,
-            self.widths, self.color1, self.color2
+            self.widths, self.pattern1, self.pattern2
         )
         p_train = 1.0 - self.hparams.validation_ratio
         p_val = self.hparams.validation_ratio
