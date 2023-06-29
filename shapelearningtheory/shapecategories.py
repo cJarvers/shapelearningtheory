@@ -73,22 +73,20 @@ class Line(Shape):
         else:
             return Pixel(self.start.x, self.start.y + self.length)
         
-    def draw_to_tensor(self, t: Tensor, wrap: bool=True) -> Tensor:
-        if self.orientation == Orientation.HORIZONTAL:
-            x_min = self.start.x
-            x_max = self.start.x + self.length
-            y = self.start.y
-            t[x_min:x_max, y] = 1.0
-            if wrap and x_max > t.size(0):
-                t[0:x_max - t.size(0), y] = 1.0
+    def generate_mask(self, height: int, width: int, wrap: bool = True) -> Tensor:
+        mask = torch.zeros((height, width), dtype=torch.bool)
+        if wrap: # if we want the image to wrap, we initialize the line at (0,0) and use torch.roll
+            x_min = 0
+            y_min = 0
         else:
+            x_min = self.start.x
             y_min = self.start.y
-            y_max = self.start.y + self.length
-            x = self.start.x
-            t[x, y_min:y_max] = 1.0
-            if wrap and y_max > t.size(1):
-                t[x, 0:y_max - t.size(1)] = 1.0
-        return t
+        x_max = x_min + (self.length if self.orientation is Orientation.HORIZONTAL else 1)
+        y_max = y_min + (self.length if self.orientation is Orientation.VERTICAL else 1)
+        mask[x_min:x_max, y_min:y_max] = True
+        if wrap:
+            mask = mask.roll(shifts=(self.start.x, self.start.y), dims=(1,0))
+        return mask
 
 
 class Rectangle(Shape):
@@ -123,16 +121,20 @@ class Rectangle(Shape):
             for x in range(x_min, x_max)
             for y in range(y_min, y_max)]
     
-    def draw_to_tensor(self, t: Tensor, wrap: bool=True) -> Tensor:
-        x_min, x_max, y_min, y_max = self._get_x_y()
-        t[x_min:x_max, y_min:y_max] = self.color
+    def generate_mask(self, height: int, width: int, wrap: bool = True) -> Tensor:
+        mask = torch.zeros((height, width), dtype=torch.bool)
+        if wrap: # if we want the image to wrap, we initialize the line at (0,0) and use torch.roll
+            x_min = 0
+            y_min = 0
+        else:
+            x_min = self.start.x
+            y_min = self.start.y
+        x_max = x_min + (self.length if self.orientation is Orientation.HORIZONTAL else self.width)
+        y_max = y_min + (self.length if self.orientation is Orientation.VERTICAL else self.width)
+        mask[x_min:x_max, y_min:y_max] = True
         if wrap:
-            if x_max > t.size(0):
-                t[0:x_max - t.size(0), y_min:y_max] = self.color
-            if y_max > t.size(1):
-                t[x_min:x_max, 0:y_max - t.size(1)] = self.color
-            if x_max > t.size(0) and y_max > t.size(1):
-                t[0:x_max - t.size(0), 0:y_max - t.size(1)] = self.color
+            mask = mask.roll(shifts=(self.start.x, self.start.y), dims=(1,0))
+        return mask
 
 
 class Square(Rectangle):
