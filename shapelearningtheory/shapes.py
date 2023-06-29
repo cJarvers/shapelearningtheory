@@ -4,8 +4,6 @@ import torch
 from torch import Tensor
 from typing import List
 
-from .colorcategories import Color
-
 ######################################################
 # Image primitives from which shapes are constructed #
 ######################################################

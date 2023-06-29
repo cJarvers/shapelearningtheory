@@ -10,7 +10,7 @@ from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
 from shapelearningtheory.autoencoder import AutoEncoder
 from shapelearningtheory.convnet import SimpleConvNet
-from shapelearningtheory.colorcategories import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
+from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
 # hyper-parameters for the task
 color1 = RedXORBlue # RandomRed # 

@@ -3,8 +3,8 @@ from torch.utils.data import Dataset, random_split, DataLoader
 from typing import List, Any, Type
 from pytorch_lightning import LightningDataModule
 # local imports:
-from .shapecategories import Pixel, Square
-from .colorcategories import Color, RandomRed, RandomBlue
+from .shapes import Pixel, Square
+from .colors import Color, RandomRed, RandomBlue
 from .stimuli import Stimulus
 
 class SquareDataset(Dataset):

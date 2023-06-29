@@ -1,5 +1,5 @@
-from .colorcategories import Color
-from .shapecategories import Shape
+from .colors import Color
+from .shapes import Shape
 from .textures import Texture
 
 class Stimulus:
