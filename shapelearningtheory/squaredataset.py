@@ -35,8 +35,8 @@ class SquareDataset(Dataset):
         squares1 = []
         # generate class 1
         for l in self.sidelengths:
-            for x in range(self.height):
-                for y in range(self.width):
+            for x in range(0, self.height+1-l, l):
+                for y in range(0, self.width+1-l, l):
                     squares1.append(
                         Stimulus(
                             shape=Square(start=Pixel(x, y), sidelength=l),
@@ -46,8 +46,8 @@ class SquareDataset(Dataset):
         # generate class 2
         squares2 = []
         for l in self.sidelengths:
-            for x in range(self.height):
-                for y in range(self.width):
+            for x in range(0, self.height+1-l, l):
+                for y in range(0, self.width+1-l, l):
                     squares2.append(
                         Stimulus(
                             shape=Square(start=Pixel(x, y), sidelength=l),

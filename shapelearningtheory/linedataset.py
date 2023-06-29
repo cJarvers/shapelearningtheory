@@ -33,7 +33,7 @@ class LineDataset(Dataset):
         # generate vertical lines
         for l in self.lengths:
             for x in range(self.height):
-                for y in range(self.width):
+                for y in range(0, self.width+1-l, l):
                     lines.append(
                         Stimulus(
                             shape=Line(Pixel(x, y), l, Orientation.VERTICAL),
@@ -42,7 +42,7 @@ class LineDataset(Dataset):
                     )
         # generate horizontal lines
         for l in self.lengths:
-            for x in range(self.height):
+            for x in range(0, self.height+1-l, l):
                 for y in range(self.width):
                     lines.append(
                         Stimulus(

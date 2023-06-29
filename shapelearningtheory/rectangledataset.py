@@ -41,8 +41,8 @@ class RectangleDataset(Dataset):
         for l in self.lengths:
             for w in self.widths:
                 if w < l:
-                    for x in range(self.imgheight):
-                        for y in range(self.imgwidth):
+                    for x in range(0, self.imgheight+1-l, l):
+                        for y in range(0, self.imgwidth+1-w, w):
                             horizontal.append(
                                 Stimulus(
                                     shape=Rectangle(
@@ -54,6 +54,8 @@ class RectangleDataset(Dataset):
                                     pattern=self.pattern1()
                                 )
                             )
+                    for x in range(0, self.imgheight+1-w, w):
+                        for y in range(0, self.imgwidth+1-l, l):
                             vertical.append(
                                 Stimulus(
                                     shape=Rectangle(

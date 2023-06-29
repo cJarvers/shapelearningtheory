@@ -83,7 +83,7 @@ class Line(Shape):
         y_max = y_min + (self.length if self.orientation is Orientation.VERTICAL else 1)
         mask[x_min:x_max, y_min:y_max] = True
         if wrap:
-            mask = mask.roll(shifts=(self.start.x, self.start.y), dims=(1,0))
+            mask = mask.roll(shifts=(self.start.x, self.start.y), dims=(0,1))
         return mask
 
 
@@ -131,7 +131,7 @@ class Rectangle(Shape):
         y_max = y_min + (self.length if self.orientation is Orientation.VERTICAL else self.width)
         mask[x_min:x_max, y_min:y_max] = True
         if wrap:
-            mask = mask.roll(shifts=(self.start.x, self.start.y), dims=(1,0))
+            mask = mask.roll(shifts=(self.start.x, self.start.y), dims=(0,1))
         return mask
 
 
