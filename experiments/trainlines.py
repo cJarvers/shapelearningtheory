@@ -47,9 +47,8 @@ from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRe
 # hyper-parameters for the task
 color1 = RedXORBlue # RandomRed # 
 color2 = NotRedXORBlue # RandomBlue # 
-imgsize = 15
-short = 3
-long = 13
+imgsize = 36
+lengths = [2, 3, 4, 6, 9, 12]
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
@@ -58,18 +57,18 @@ epochs = 100
 
 # get data:
 # training dataset
-traindata = LineDataModule(imgsize, imgsize, range(short+2, long-2), horizontalcolor=color1, verticalcolor=color2)
+traindata = LineDataModule(imgsize, imgsize, lengths, horizontalcolor=color1, verticalcolor=color2)
 # alternative version: use squares to check that networks really can learn to distinguish the colors
-#traindata = SquaresDataModule(imgsize, imgsize, range(short, (short+long)//2), color1=color1, color2=color2) 
+#traindata = SquaresDataModule(imgsize, imgsize, lengths, color1=color1, color2=color2) 
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     #"short": LineDataModule(imgsize, imgsize, [short], horizontalcolor=color1, verticalcolor=color2), # shorter lines, correct color
     #"long": LineDataModule(imgsize, imgsize, [long], horizontalcolor=color1, verticalcolor=color2), # longer lines, correct color
     "traindata": traindata,
-    "color only": SquaresDataModule(imgsize, imgsize, range(short+2, long-2), pattern1=color1, pattern2=color2), # correct color, but squares instead of lines (cannot classify by shape)
-    "shape only": LineDataModule(imgsize, imgsize, range(short+2, long-2), horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
-    "conflict": LineDataModule(imgsize, imgsize, range(short+2, long-2), horizontalcolor=color2, verticalcolor=color1) # medium length lines, incorrect color
+    "color only": SquaresDataModule(imgsize, imgsize, lengths, pattern1=color1, pattern2=color2), # correct color, but squares instead of lines (cannot classify by shape)
+    "shape only": LineDataModule(imgsize, imgsize, lengths, horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
+    "conflict": LineDataModule(imgsize, imgsize, lengths, horizontalcolor=color2, verticalcolor=color1) # medium length lines, incorrect color
 }
 
 # define models

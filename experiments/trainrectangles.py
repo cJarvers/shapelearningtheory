@@ -15,11 +15,9 @@ from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRe
 # hyper-parameters for the task
 pattern1 = RedXORBlue # RandomRed # 
 pattern2 = NotRedXORBlue # RandomBlue # 
-imgsize = 15
-minlength = 7
-maxlength = 13
-minwidth = 4
-maxwidth = 8
+imgsize = 36
+lengths=[4, 6, 9, 12]
+widths=[3, 4, 6, 9]
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
@@ -28,14 +26,14 @@ epochs = 100
 
 # get data:
 # training dataset
-traindata = RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=pattern1, pattern2=pattern2)
+traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "color only": SquaresDataModule(imgsize, imgsize, range(minwidth, maxlength), pattern1=pattern1, pattern2=pattern2), # correct color, but squares instead of rectangles (cannot classify by shape)
-    "shape only": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=Grey, pattern2=Grey), # same rectangles but no color
-    "conflict": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=pattern2, pattern2=pattern1) # same rectangles, incorrect color
+    "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2), # correct color, but squares instead of rectangles (cannot classify by shape)
+    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=Grey, pattern2=Grey), # same rectangles but no color
+    "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1) # same rectangles, incorrect color
 }
 
 # define models
