@@ -13,8 +13,8 @@ from shapelearningtheory.convnet import SimpleConvNet
 from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
 # hyper-parameters for the task
-color1 = RedXORBlue # RandomRed # 
-color2 = NotRedXORBlue # RandomBlue # 
+pattern1 = RedXORBlue # RandomRed # 
+pattern2 = NotRedXORBlue # RandomBlue # 
 imgsize = 15
 minlength = 7
 maxlength = 13
@@ -28,14 +28,14 @@ epochs = 100
 
 # get data:
 # training dataset
-traindata = RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=color1, color2=color2)
+traindata = RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=pattern1, pattern2=pattern2)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "color only": SquaresDataModule(imgsize, imgsize, range(minwidth, maxlength), color1=color1, color2=color2), # correct color, but squares instead of rectangles (cannot classify by shape)
-    "shape only": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=Grey, color2=Grey), # same rectangles but no color
-    "conflict": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), color1=color2, color2=color1) # same rectangles, incorrect color
+    "color only": SquaresDataModule(imgsize, imgsize, range(minwidth, maxlength), pattern1=pattern1, pattern2=pattern2), # correct color, but squares instead of rectangles (cannot classify by shape)
+    "shape only": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=Grey, pattern2=Grey), # same rectangles but no color
+    "conflict": RectangleDataModule(imgsize, imgsize, range(minlength, maxlength), range(minwidth, maxwidth), pattern1=pattern2, pattern2=pattern1) # same rectangles, incorrect color
 }
 
 # define models

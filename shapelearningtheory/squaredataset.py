@@ -6,6 +6,7 @@ from pytorch_lightning import LightningDataModule
 from .shapes import Pixel, Square
 from .colors import Color, RandomRed, RandomBlue
 from .stimuli import Stimulus
+from .textures import Texture
 
 class SquareDataset(Dataset):
     """Dataset for classifying squares according to color
@@ -14,17 +15,18 @@ class SquareDataset(Dataset):
         - height: int - height of output images
         - width: int - width of output images
         - sidelengths: List[int] - side lengths of squares to generate
-        - color1: Type[Color] - color type for class 1
-        - color2: Type[Color] - color type for class 2
+        - pattern1: Type[Color] | Type[Texture] - color or texture type for class 1
+        - pattern2: Type[Color] | Type[Texture] - color or texture type for class 2
     """
     def __init__(self, height: int, width: int, sidelengths: List[int],
-            color1: Type[Color] = RandomRed, color2: Type[Color] = RandomBlue) -> None:
+            pattern1: Type[Color] | Type[Texture],
+            pattern2: Type[Color] | Type[Texture]) -> None:
         super().__init__()
         self.height = height
         self.width = width
         self.sidelengths = sidelengths
-        self.color1 = color1
-        self.color2 = color2
+        self.pattern1 = pattern1
+        self.pattern2 = pattern2
         self.squares1, self.squares2 = self.generate_all_squares()
         self.num_class1 = len(self.squares1)
         self.num_class2 = len(self.squares2)
@@ -38,7 +40,7 @@ class SquareDataset(Dataset):
                     squares1.append(
                         Stimulus(
                             shape=Square(start=Pixel(x, y), sidelength=l),
-                            pattern=self.color1()
+                            pattern=self.pattern1()
                         )
                     )
         # generate class 2
@@ -49,7 +51,7 @@ class SquareDataset(Dataset):
                     squares2.append(
                         Stimulus(
                             shape=Square(start=Pixel(x, y), sidelength=l),
-                            pattern=self.color2()
+                            pattern=self.pattern2()
                         )
                     )
         return squares1, squares2
@@ -71,19 +73,19 @@ class SquareDataset(Dataset):
 class SquaresDataModule(LightningDataModule):
     def __init__(self, height: int, width: int, lengths: List[int],
             batch_size: int = 32, num_workers: int = 4,
-            color1: Type[Color] = RandomRed,
-            color2: Type[Color] = RandomBlue,
+            pattern1: Type[Color] = RandomRed,
+            pattern2: Type[Color] = RandomBlue,
             validation_ratio: float = 0.0):
         super().__init__()
         self.lengths = lengths
-        self.color1 = color1
-        self.color2 = color2
+        self.pattern1 = pattern1
+        self.pattern2 = pattern2
         self.save_hyperparameters(ignore=["lengths"])
 
     def prepare_data(self) -> None:
         self.dataset = SquareDataset(self.hparams.height, self.hparams.width,
-            self.lengths, color1=self.color1,
-            color2=self.color2)
+            self.lengths, pattern1=self.pattern1,
+            pattern2=self.pattern2)
         p_train = 1.0 - self.hparams.validation_ratio
         p_val = self.hparams.validation_ratio
         self.train, self.val = random_split(self.dataset, [p_train, p_val])
