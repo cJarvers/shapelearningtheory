@@ -72,6 +72,18 @@ class Grey(SingleColor):
     def colorval(self) -> Tensor:
         return self.brightness * torch.ones(1, 1, 3)
     
+class GreySingleChannel(SingleColor):
+    def __init__(self, brightness=0.5):
+        super().__init__()
+        self.brightness = brightness
+
+    def colorval(self) -> Tensor:
+        return self.brightness * torch.ones(1, 1, 1)
+    
+    def fill_tensor(self, height, width) -> Tensor:
+        img = torch.zeros((1, height, width))
+        return img + self.colorval()
+    
 class RandomGrey(SingleColor):
     def __init__(self, min=0.5, max=1.0):
         super().__init__()

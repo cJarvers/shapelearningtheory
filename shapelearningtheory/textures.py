@@ -12,9 +12,9 @@ class Texture:
     def fill_tensor(self, height, width) -> Tensor:
         xs = torch.arange(height)
         ys = torch.arange(width)
-        grid_x, grid_y = torch.meshgrid([xs, ys])
+        grid_x, grid_y = torch.meshgrid([xs, ys], indexing="ij")
         pattern = self.value_at_coordinate(grid_x, grid_y)
-        return pattern
+        return pattern.unsqueeze(0)
 
 class SineGrating(Texture):
     """

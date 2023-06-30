@@ -10,11 +10,21 @@ from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
 from shapelearningtheory.autoencoder import AutoEncoder
 from shapelearningtheory.convnet import SimpleConvNet
-from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
+from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
+from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
 # hyper-parameters for the task
-pattern1 = RedXORBlue # RandomRed # 
-pattern2 = NotRedXORBlue # RandomBlue # 
+use_color = False
+if use_color:
+    pattern1 = RedXORBlue # RandomRed # 
+    pattern2 = NotRedXORBlue # RandomBlue # 
+    nopattern = Grey
+    channels = 3
+else:
+    pattern1 = VerticalGrating
+    pattern2 = HorizontalGrating
+    nopattern = GreySingleChannel
+    channels = 1
 imgsize = 36
 lengths=[4, 6, 9, 12]
 widths=[3, 4, 6, 9]
@@ -33,23 +43,23 @@ traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=patt
 test_sets = {
     "traindata": traindata,
     "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2), # correct color, but squares instead of rectangles (cannot classify by shape)
-    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=Grey, pattern2=Grey), # same rectangles but no color
+    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=nopattern, pattern2=nopattern), # same rectangles but no color
     "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1) # same rectangles, incorrect color
 }
 
 # define models
-shallow_model = ShallowLinear(imgsize * imgsize * 3, 2, loss_fun=torch.nn.functional.cross_entropy, 
+shallow_model = ShallowLinear(imgsize * imgsize * channels, 2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-deep_model = DeepLinear(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_layers=num_layers,
+deep_model = DeepLinear(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-mlp_model = MLP(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_layers=num_layers,
+mlp_model = MLP(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
 simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
-    in_channels=3, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
+    in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-autoencoder = AutoEncoder(input_dim=imgsize * imgsize * 3, hidden_dims=[num_hidden, num_hidden],
+autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden, num_hidden],
     representation_dim=100, num_classes=2)
 models = {
     "shallow_linear": shallow_model,
