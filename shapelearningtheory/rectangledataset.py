@@ -23,7 +23,8 @@ class RectangleDataset(Dataset):
     """
     def __init__(self, imgheight: int, imgwidth: int, lengths: List[int],
             widths: List[int], pattern1: Type[Color] | Type[Texture],
-            pattern2: Type[Color] | Type[Texture]):
+            pattern2: Type[Color] | Type[Texture],
+            oversampling_factor: int = 1):
         super().__init__()
         # store parameters
         self.imgheight = imgheight
@@ -32,6 +33,7 @@ class RectangleDataset(Dataset):
         self.widths = widths
         self.pattern1 = pattern1
         self.pattern2 = pattern2
+        self.oversampling_factor = oversampling_factor
         # generate dataset
         self.rectangles = self.generate_all_rectangles()
 
@@ -43,30 +45,32 @@ class RectangleDataset(Dataset):
                 if w < l:
                     for x in range(0, self.imgheight+1-l, l):
                         for y in range(0, self.imgwidth+1-w, w):
-                            horizontal.append(
-                                Stimulus(
-                                    shape=Rectangle(
-                                        start=Pixel(x, y),
-                                        length=l,
-                                        width=w,
-                                        orientation=Orientation.HORIZONTAL
-                                    ),
-                                    pattern=self.pattern1()
+                            for _ in range(self.oversampling_factor):
+                                horizontal.append(
+                                    Stimulus(
+                                        shape=Rectangle(
+                                            start=Pixel(x, y),
+                                            length=l,
+                                            width=w,
+                                            orientation=Orientation.HORIZONTAL
+                                        ),
+                                        pattern=self.pattern1()
+                                    )
                                 )
-                            )
                     for x in range(0, self.imgheight+1-w, w):
                         for y in range(0, self.imgwidth+1-l, l):
-                            vertical.append(
-                                Stimulus(
-                                    shape=Rectangle(
-                                        start=Pixel(x, y),
-                                        length=l,
-                                        width=w,
-                                        orientation=Orientation.VERTICAL
-                                    ),
-                                    pattern=self.pattern2()
+                            for _ in range(self.oversampling_factor):
+                                vertical.append(
+                                    Stimulus(
+                                        shape=Rectangle(
+                                            start=Pixel(x, y),
+                                            length=l,
+                                            width=w,
+                                            orientation=Orientation.VERTICAL
+                                        ),
+                                        pattern=self.pattern2()
+                                    )
                                 )
-                            )
         return horizontal + vertical
     
     def __getitem__(self, index: int) -> Any:
@@ -87,7 +91,8 @@ class RectangleDataModule(LightningDataModule):
             widths: List[int], batch_size: int = 32, num_workers: int = 4,
             pattern1: Type[Color] = RandomRed,
             pattern2: Type[Color] = RandomBlue,
-            validation_ratio: float = 0.0):
+            validation_ratio: float = 0.0,
+            oversampling_factor: int = 1):
         super().__init__()
         self.lengths = lengths
         self.widths = widths
@@ -98,7 +103,8 @@ class RectangleDataModule(LightningDataModule):
     def prepare_data(self) -> None:
         self.dataset = RectangleDataset(
             self.hparams.imgheight, self.hparams.imgwidth, self.lengths,
-            self.widths, self.pattern1, self.pattern2
+            self.widths, self.pattern1, self.pattern2,
+            self.hparams.oversampling_factor
         )
         p_train = 1.0 - self.hparams.validation_ratio
         p_val = self.hparams.validation_ratio

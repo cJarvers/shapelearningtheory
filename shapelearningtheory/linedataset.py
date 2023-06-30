@@ -19,13 +19,15 @@ class LineDataset(Dataset):
         - verticalcolor: Type[Color] - class of colors for vertical lines
     """
     def __init__(self, height: int, width: int, lengths=List[int],
-            horizontalcolor: Type[Color] = White, verticalcolor: Type[Color] = White) -> None:
+            horizontalcolor: Type[Color] = White, verticalcolor: Type[Color] = White,
+            oversampling_factor: int = 1) -> None:
         super().__init__()
         self.height = height
         self.width = width
         self.lengths = lengths
         self.horizontalcolor = horizontalcolor
         self.verticalcolor = verticalcolor
+        self.oversampling_factor = oversampling_factor
         self.lines = self.generate_all_lines()
 
     def generate_all_lines(self):
@@ -34,22 +36,24 @@ class LineDataset(Dataset):
         for l in self.lengths:
             for x in range(self.height):
                 for y in range(0, self.width+1-l, l):
-                    lines.append(
-                        Stimulus(
-                            shape=Line(Pixel(x, y), l, Orientation.VERTICAL),
-                            pattern=self.verticalcolor()
+                    for _ in range(self.oversampling_factor):
+                        lines.append(
+                            Stimulus(
+                                shape=Line(Pixel(x, y), l, Orientation.VERTICAL),
+                                pattern=self.verticalcolor()
+                            )
                         )
-                    )
         # generate horizontal lines
         for l in self.lengths:
             for x in range(0, self.height+1-l, l):
                 for y in range(self.width):
-                    lines.append(
-                        Stimulus(
-                            shape=Line(Pixel(x, y), l, Orientation.HORIZONTAL),
-                            pattern=self.horizontalcolor()
+                    for _ in range(self.oversampling_factor):
+                        lines.append(
+                            Stimulus(
+                                shape=Line(Pixel(x, y), l, Orientation.HORIZONTAL),
+                                pattern=self.horizontalcolor()
+                            )
                         )
-                    )
         return lines
 
     def __getitem__(self, idx: int):
@@ -66,7 +70,8 @@ class LineDataModule(LightningDataModule):
             batch_size: int = 32, num_workers: int = 4,
             horizontalcolor: Type[Color] = RandomRed,
             verticalcolor: Type[Color] = RandomBlue,
-            validation_ratio: float = 0.0):
+            validation_ratio: float = 0.0,
+            oversampling_factor: int = 1):
         super().__init__()
         self.lengths = lengths
         self.horizontalcolor = horizontalcolor
@@ -76,7 +81,8 @@ class LineDataModule(LightningDataModule):
     def prepare_data(self) -> None:
         self.dataset = LineDataset(self.hparams.height, self.hparams.width,
             self.lengths, horizontalcolor=self.horizontalcolor,
-            verticalcolor=self.verticalcolor)
+            verticalcolor=self.verticalcolor,
+            oversampling_factor=self.hparams.oversampling_factor)
         p_train = 1.0 - self.hparams.validation_ratio
         p_val = self.hparams.validation_ratio
         self.train, self.val = random_split(self.dataset, [p_train, p_val])

@@ -49,6 +49,7 @@ color1 = RedXORBlue # RandomRed #
 color2 = NotRedXORBlue # RandomBlue # 
 imgsize = 36
 lengths = [2, 3, 4, 6, 9, 12]
+oversample = 3
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
@@ -57,7 +58,7 @@ epochs = 100
 
 # get data:
 # training dataset
-traindata = LineDataModule(imgsize, imgsize, lengths, horizontalcolor=color1, verticalcolor=color2)
+traindata = LineDataModule(imgsize, imgsize, lengths, horizontalcolor=color1, verticalcolor=color2, oversampling_factor=oversample)
 # alternative version: use squares to check that networks really can learn to distinguish the colors
 #traindata = SquaresDataModule(imgsize, imgsize, lengths, color1=color1, color2=color2) 
 #

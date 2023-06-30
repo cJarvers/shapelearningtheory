@@ -18,6 +18,7 @@ pattern2 = NotRedXORBlue # RandomBlue #
 imgsize = 36
 lengths=[4, 6, 9, 12]
 widths=[3, 4, 6, 9]
+oversample = 3
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
@@ -26,7 +27,7 @@ epochs = 100
 
 # get data:
 # training dataset
-traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2)
+traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, oversampling_factor=oversample)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
