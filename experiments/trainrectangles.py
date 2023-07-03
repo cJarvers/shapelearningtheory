@@ -4,10 +4,9 @@ import pytorch_lightning as pl
 import sys
 # local imports
 sys.path.append("..")
-from shapelearningtheory.rectangledataset import RectangleDataModule
-from shapelearningtheory.squaredataset import SquaresDataModule
+from shapelearningtheory.datasets import RectangleDataModule, SquaresDataModule
 from shapelearningtheory.networks import ShallowLinear, DeepLinear, MLP, AutoEncoder, SimpleConvNet
-from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue, RandomGrey, RandomGreySingleChannel
+from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomGrey, RandomGreySingleChannel
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
 # hyper-parameters for the task

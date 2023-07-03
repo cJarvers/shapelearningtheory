@@ -36,8 +36,7 @@ import pytorch_lightning as pl
 import sys
 # local imports
 sys.path.append("..")
-from shapelearningtheory.linedataset import LineDataModule
-from shapelearningtheory.squaredataset import SquaresDataModule
+from shapelearningtheory.datasets import LineDataModule,SquaresDataModule
 from shapelearningtheory.networks import ShallowLinear, DeepLinear, MLP, AutoEncoder, SimpleConvNet
 from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
