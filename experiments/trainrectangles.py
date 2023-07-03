@@ -6,7 +6,7 @@ import sys
 sys.path.append("..")
 from shapelearningtheory.rectangledataset import RectangleDataModule
 from shapelearningtheory.squaredataset import SquaresDataModule
-from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
+from shapelearningtheory.networks.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.networks.mlp import MLP
 from shapelearningtheory.networks.autoencoder import AutoEncoder
 from shapelearningtheory.networks.convnet import SimpleConvNet
