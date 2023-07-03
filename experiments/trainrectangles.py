@@ -14,17 +14,17 @@ from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotR
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
 # hyper-parameters for the task
-use_color = True
+use_color = False
 if use_color:
-    pattern1 = RedXORBlue # RandomRed # 
-    pattern2 = NotRedXORBlue # RandomBlue # 
+    pattern1 = RedXORBlue
+    pattern2 = NotRedXORBlue
     background = RandomGrey
     nopattern = Grey
     channels = 3
 else:
     pattern1 = VerticalGrating
     pattern2 = HorizontalGrating
-    background = RandomGreySingleChannel,
+    background = RandomGreySingleChannel
     nopattern = GreySingleChannel
     channels = 1
 imgsize = 36
@@ -62,13 +62,13 @@ mlp_model = MLP(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, 
 simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
     in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden, num_hidden],
+autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden] * num_layers,
     representation_dim=500, num_classes=2)
 models = {
-    #"shallow_linear": shallow_model,
-    #"deep_linear": deep_model,
-    #"mlp": mlp_model,
-    #"conv": simpleconv_model,
+    "shallow_linear": shallow_model,
+    "deep_linear": deep_model,
+    "mlp": mlp_model,
+    "conv": simpleconv_model,
     "autoencoder": autoencoder
 }
 

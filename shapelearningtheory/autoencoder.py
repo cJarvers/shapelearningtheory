@@ -16,7 +16,7 @@ class AutoEncoder(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         # initial batchnorm; the normed input is reconstructed
-        self.norm = torch.nn.LayerNorm(input_dim, elementwise_affine=False, eps=0.01)
+        self.norm = torch.nn.Identity()
         # generate encoder layers
         self.encoder = torch.nn.Sequential()
         previous_dim = input_dim
