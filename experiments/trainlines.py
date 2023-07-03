@@ -37,7 +37,7 @@ import sys
 # local imports
 sys.path.append("..")
 from shapelearningtheory.datasets import LineDataModule,SquaresDataModule
-from shapelearningtheory.networks import ShallowLinear, DeepLinear, MLP, AutoEncoder, SimpleConvNet
+from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet
 from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
 # hyper-parameters for the task
@@ -69,11 +69,6 @@ test_sets = {
 }
 
 # define models
-shallow_model = ShallowLinear(imgsize * imgsize * 3, 2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
-deep_model = DeepLinear(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_layers=num_layers,
-    num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
 mlp_model = MLP(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
@@ -83,8 +78,6 @@ simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[
 autoencoder = AutoEncoder(input_dim=imgsize * imgsize * 3, hidden_dims=[num_hidden, num_hidden],
     representation_dim=100, num_classes=2)
 models = {
-    "shallow_linear": shallow_model,
-    "deep_linear": deep_model,
     "mlp": mlp_model,
     "conv": simpleconv_model,
     "autoencoder": autoencoder

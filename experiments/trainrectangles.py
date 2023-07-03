@@ -5,7 +5,7 @@ import sys
 # local imports
 sys.path.append("..")
 from shapelearningtheory.datasets import RectangleDataModule, SquaresDataModule
-from shapelearningtheory.networks import ShallowLinear, DeepLinear, MLP, AutoEncoder, SimpleConvNet
+from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet
 from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomGrey, RandomGreySingleChannel
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
@@ -20,9 +20,9 @@ if use_color:
 else:
     pattern1 = VerticalGrating
     pattern2 = HorizontalGrating
-    background = RandomGreySingleChannel
-    nopattern = GreySingleChannel
-    channels = 1
+    background = RandomGrey
+    nopattern = Grey
+    channels = 3
 imgsize = 36
 lengths=[4, 6, 9, 12]
 widths=[3, 4, 6, 9]
@@ -47,11 +47,6 @@ test_sets = {
 }
 
 # define models
-shallow_model = ShallowLinear(imgsize * imgsize * channels, 2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
-deep_model = DeepLinear(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, num_layers=num_layers,
-    num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
 mlp_model = MLP(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
@@ -61,8 +56,6 @@ simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[
 autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden] * num_layers,
     representation_dim=500, num_classes=2)
 models = {
-    "shallow_linear": shallow_model,
-    "deep_linear": deep_model,
     "mlp": mlp_model,
     "conv": simpleconv_model,
     "autoencoder": autoencoder
