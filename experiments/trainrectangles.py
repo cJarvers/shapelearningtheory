@@ -14,7 +14,7 @@ from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotR
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
 # hyper-parameters for the task
-use_color = False
+use_color = True
 if use_color:
     pattern1 = RedXORBlue # RandomRed # 
     pattern2 = NotRedXORBlue # RandomBlue # 
@@ -28,23 +28,24 @@ else:
 imgsize = 36
 lengths=[4, 6, 9, 12]
 widths=[3, 4, 6, 9]
-oversample = 3
+oversample = 5
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
 # hyper-parameters for training
-epochs = 100
+epochs = 500
+batchsize = 128
 
 # get data:
 # training dataset
-traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, oversampling_factor=oversample)
+traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, oversampling_factor=oversample, batch_size=batchsize)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2), # correct color, but squares instead of rectangles (cannot classify by shape)
-    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=nopattern, pattern2=nopattern), # same rectangles but no color
-    "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1) # same rectangles, incorrect color
+    "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2, batch_size=batchsize), # correct color, but squares instead of rectangles (cannot classify by shape)
+    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=nopattern, pattern2=nopattern, batch_size=batchsize), # same rectangles but no color
+    "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1, batch_size=batchsize) # same rectangles, incorrect color
 }
 
 # define models
@@ -60,17 +61,17 @@ simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[
     in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
 autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden, num_hidden],
-    representation_dim=100, num_classes=2)
+    representation_dim=500, num_classes=2)
 models = {
-    "shallow_linear": shallow_model,
-    "deep_linear": deep_model,
-    "mlp": mlp_model,
-    "conv": simpleconv_model,
+    #"shallow_linear": shallow_model,
+    #"deep_linear": deep_model,
+    #"mlp": mlp_model,
+    #"conv": simpleconv_model,
     "autoencoder": autoencoder
 }
 
 # initialize trainers
-trainers = {name: pl.Trainer(max_epochs=epochs) for name in models.keys()}
+trainers = {name: pl.Trainer(max_epochs=epochs, accelerator="gpu") for name in models.keys()}
 
 # train
 for name, model in models.items():
