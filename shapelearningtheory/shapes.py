@@ -2,7 +2,7 @@
 from enum import Enum
 import torch
 from torch import Tensor
-from typing import List
+from typing import List, Literal
 
 ######################################################
 # Image primitives from which shapes are constructed #
@@ -141,3 +141,191 @@ class Square(Rectangle):
         self.length = sidelength
         self.width = sidelength
         self.orientation = Orientation.HORIZONTAL # for compatibility with parent class, but irrelevant
+
+
+####################
+# Composite shapes #
+####################
+class LShape(Shape):
+    """Two lines that meet to form a corner.
+    
+    Args:
+        start: Pixel - start location (top left pixel)
+        height: int - length of the vertical line
+        width: int - length of the horizontal line
+        strength: int - how many pixels each line should be wide
+        corner: Literal["topright", "topleft", "bottomright", "bottomleft"]
+          - determines orientation (e.g., for "topright" the two lines meet at the top right;
+            "bottomleft" corresponds to a normal L)
+    """
+    def __init__(self, start: Pixel, height: int, width: int, strength: int,
+            corner: Literal["topright", "topleft", "bottomright", "bottomleft"]):
+        super().__init__()
+        if height <= strength or width <= strength:
+            raise ValueError("Height / width of LShape is smaller than stroke strength; one stroke will not be visible.")
+        self.start = start
+        self.height = height
+        self.width = width
+        self.strength = strength
+        self.corner = corner
+        # generate the two bars that make up the L shape
+        self.horizontalbar, self.verticalbar = self._calculate_bars()
+
+    def _calculate_bars(self):
+        if self.corner == "topright":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y
+            x_vertical = self.start.x + self.width - self.strength
+            y_vertical = self.start.y
+        elif self.corner == "topleft":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y
+            x_vertical = self.start.x
+            y_vertical = self.start.y
+        elif self.corner == "bottomright":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y + self.height
+            x_vertical = self.start.x + self.width - self.strength
+            y_vertical = self.start.y
+        elif self.corner == "bottomleft":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y + self.height
+            x_vertical = self.start.x
+            y_vertical = self.start.y
+        horizontalbar = Rectangle(
+            start = Pixel(x_horizontal, y_horizontal),
+            length = self.width,
+            width = self.strength,
+            orientation = Orientation.HORIZONTAL
+        )
+        verticalbar = Rectangle(
+            start = Pixel(x_vertical, y_vertical),
+            length = self.height,
+            width = self.strength,
+            orientation = Orientation.VERTICAL
+        )
+        return horizontalbar, verticalbar
+
+    def generate_mask(self, height: int, width: int, wrap: bool = True) -> Tensor:
+        horizontal_mask = self.horizontalbar.generate_mask(height, width, wrap)
+        vertical_mask = self.verticalbar.generate_mask(height, width, wrap)
+        return torch.logical_or(horizontal_mask, vertical_mask)
+    
+class TShape(Shape):
+    """Two lines that meet to form a T-junction.
+    
+    Args:
+        start: Pixel - start location (top left pixel)
+        height: int - length of the vertical line
+        width: int - length of the horizontal line
+        strength: int - how many pixels each line should be wide
+        topside: Literal["right", "left", "top", "left"]
+          - determines orientation (e.g., for "top" the upper line of the T is at the top,
+            resulting in a normal T)
+    """
+    def __init__(self, start: Pixel, height: int, width: int, strength: int,
+            topside: Literal["right", "left", "top", "bottom"]):
+        super().__init__()
+        if height <= strength or width <= strength:
+            raise ValueError("Height / width of TShape is smaller than stroke strength; one stroke will not be visible.")
+        if height == strength + 1 or width == strength + 1:
+            raise ValueError("Height / width of TShape is only 1 larger than stroke strength; will be indistinguishable from L.")
+        self.start = start
+        self.height = height
+        self.width = width
+        self.strength = strength
+        self.topside = topside
+        # generate the two bars that make up the T shape
+        self.horizontalbar, self.verticalbar = self._calculate_bars()
+
+    def _calculate_bars(self):
+        if self.topside == "right":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y + self.height // 2 - self.strength // 2
+            x_vertical = self.start.x
+            y_vertical = self.start.y
+        elif self.topside == "left":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y + self.height // 2 - self.strength // 2
+            x_vertical = self.start.x + self.width - self.strength
+            y_vertical = self.start.y
+        elif self.topside == "top":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y
+            x_vertical = self.start.x + self.width // 2 - self.strength // 2
+            y_vertical = self.start.y
+        elif self.topside == "bottom":
+            x_horizontal = self.start.x
+            y_horizontal = self.start.y + self.height - self.strength
+            x_vertical = self.start.x + self.width // 2 - self.strength // 2
+            y_vertical = self.start.y
+        horizontalbar = Rectangle(
+            start = Pixel(x_horizontal, y_horizontal),
+            length = self.width,
+            width = self.strength,
+            orientation = Orientation.HORIZONTAL
+        )
+        verticalbar = Rectangle(
+            start = Pixel(x_vertical, y_vertical),
+            length = self.height,
+            width = self.strength,
+            orientation = Orientation.VERTICAL
+        )
+        return horizontalbar, verticalbar
+
+    def generate_mask(self, height: int, width: int, wrap: bool = True) -> Tensor:
+        horizontal_mask = self.horizontalbar.generate_mask(height, width, wrap)
+        vertical_mask = self.verticalbar.generate_mask(height, width, wrap)
+        return torch.logical_or(horizontal_mask, vertical_mask)
+    
+class PlusShape(Shape):
+    """Two lines that cross each other.
+    
+    Args:
+        start: Pixel - start location (top left pixel)
+        height: int - length of the vertical line
+        width: int - length of the horizontal line
+        strength: int - how many pixels each line should be wide
+        x_offset: int - offset applied to the vertical bar in x direction
+        y_offset: int - offset applied to the horizontal bar in y direction
+    """
+    def __init__(self, start: Pixel, height: int, width: int, strength: int,
+            x_offset: int = 0, y_offset: int = 0):
+        super().__init__()
+        if height <= strength or width <= strength:
+            raise ValueError("Height / width of PlusShape is smaller than stroke strength; one stroke will not be visible.")
+        if height == strength + 1 or width == strength + 1:
+            raise ValueError("Height / width of PlusShape is only 1 larger than stroke strength; will be indistinguishable from L or T.")
+        if abs(x_offset) >= (width - strength) // 2 or abs(y_offset) >= (height - strength) // 2:
+            raise ValueError("Offset in a PlusShape cannot be larger than height or width - strength; otherwise, shape will become an L or T.")
+        self.start = start
+        self.height = height
+        self.width = width
+        self.strength = strength
+        self.x_offset = x_offset
+        self.y_offset = y_offset
+        self.horizontalbar, self.verticalbar = self._calculate_bars()
+
+    def _calculate_bars(self):
+        x_horizontal = self.start.x
+        y_horizontal = self.start.y + self.height // 2 - self.strength // 2 + self.y_offset
+        x_vertical = self.start.x + self.width // 2 - self.strength // 2 + self.x_offset
+        y_vertical = self.start.y
+        horizontalbar = Rectangle(
+            start = Pixel(x_horizontal, y_horizontal),
+            length = self.width,
+            width = self.strength,
+            orientation = Orientation.HORIZONTAL
+        )
+        verticalbar = Rectangle(
+            start = Pixel(x_vertical, y_vertical),
+            length = self.height,
+            width = self.strength,
+            orientation = Orientation.VERTICAL
+        )
+        return horizontalbar, verticalbar
+
+    def generate_mask(self, height: int, width: int, wrap: bool = True) -> Tensor:
+        horizontal_mask = self.horizontalbar.generate_mask(height, width, wrap)
+        vertical_mask = self.verticalbar.generate_mask(height, width, wrap)
+        return torch.logical_or(horizontal_mask, vertical_mask)
