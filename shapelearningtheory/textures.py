@@ -15,6 +15,28 @@ class Texture:
         grid_x, grid_y = torch.meshgrid([xs, ys], indexing="ij")
         pattern = self.value_at_coordinate(grid_x, grid_y)
         return pattern.unsqueeze(0)
+    
+class WhiteNoise(Texture):
+    def __init__(self, mean=0.5, std=0.1):
+        self.mean = mean
+        self.std = std
+
+    def value_at_coordinate(self, x, y):
+        return torch.randn(1,1,3) * self.std + self.mean
+    
+    def fill_tensor(self, height, width) -> Tensor:
+        return torch.randn((3, height, width)) * self.std + self.mean
+
+class WhiteNoiseSingleChannel(Texture):
+    def __init__(self, mean=0.5, std=0.1):
+        self.mean = mean
+        self.std = std
+
+    def value_at_coordinate(self, x, y):
+        return torch.randn(1,1,1) * self.std + self.mean
+    
+    def fill_tensor(self, height, width) -> Tensor:
+        return torch.randn((1, height, width)) * self.std + self.mean
 
 class SineGrating(Texture):
     """
