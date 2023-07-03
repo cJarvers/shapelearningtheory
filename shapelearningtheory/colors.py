@@ -85,7 +85,7 @@ class GreySingleChannel(SingleColor):
         return img + self.colorval()
     
 class RandomGrey(SingleColor):
-    def __init__(self, min=0.5, max=1.0):
+    def __init__(self, min=0.0, max=1.0):
         super().__init__()
         self.min = min
         self.max = max
@@ -93,6 +93,20 @@ class RandomGrey(SingleColor):
     def colorval(self) -> Tensor:
         c = torch.rand(1).repeat(1, 1, 3) * (self.max - self.min) + self.min
         return c
+    
+class RandomGreySingleChannel(SingleColor):
+    def __init__(self, min=0.0, max=1.0):
+        super().__init__()
+        self.min = min
+        self.max = max
+
+    def colorval(self) -> Tensor:
+        c = torch.rand(1, 1, 1) * (self.max - self.min) + self.min
+        return c
+    
+    def fill_tensor(self, height, width) -> Tensor:
+        img = torch.zeros((1, height, width))
+        return img + self.colorval()
     
 
 ##################################################################

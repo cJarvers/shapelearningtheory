@@ -10,7 +10,7 @@ from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
 from shapelearningtheory.mlp import MLP
 from shapelearningtheory.autoencoder import AutoEncoder
 from shapelearningtheory.convnet import SimpleConvNet
-from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
+from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue, RandomGrey, RandomGreySingleChannel
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
 # hyper-parameters for the task
@@ -18,11 +18,13 @@ use_color = True
 if use_color:
     pattern1 = RedXORBlue # RandomRed # 
     pattern2 = NotRedXORBlue # RandomBlue # 
+    background = RandomGrey
     nopattern = Grey
     channels = 3
 else:
     pattern1 = VerticalGrating
     pattern2 = HorizontalGrating
+    background = RandomGreySingleChannel,
     nopattern = GreySingleChannel
     channels = 1
 imgsize = 36
@@ -38,14 +40,14 @@ batchsize = 128
 
 # get data:
 # training dataset
-traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, oversampling_factor=oversample, batch_size=batchsize)
+traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, oversampling_factor=oversample, batch_size=batchsize)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2, batch_size=batchsize), # correct color, but squares instead of rectangles (cannot classify by shape)
-    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=nopattern, pattern2=nopattern, batch_size=batchsize), # same rectangles but no color
-    "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1, batch_size=batchsize) # same rectangles, incorrect color
+    "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, batch_size=batchsize), # correct color, but squares instead of rectangles (cannot classify by shape)
+    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=nopattern, pattern2=nopattern, background_pattern=background, batch_size=batchsize), # same rectangles but no color
+    "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1, background_pattern=background, batch_size=batchsize) # same rectangles, incorrect color
 }
 
 # define models

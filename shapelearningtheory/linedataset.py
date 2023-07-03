@@ -4,7 +4,7 @@ from typing import List, Any, Type
 from pytorch_lightning import LightningDataModule
 # local imports:
 from .shapes import Pixel, Orientation, Line
-from .colors import Color, White, RandomRed, RandomBlue
+from .colors import Color, White, RandomRed, RandomBlue, Grey
 from .stimuli import Stimulus
 
 class LineDataset(Dataset):
@@ -17,9 +17,12 @@ class LineDataset(Dataset):
         - lengths: List[int] - lengths of lines to generate
         - horizontalcolor: Type[Color] - class of colors for horizontal lines
         - verticalcolor: Type[Color] - class of colors for vertical lines
+        - background_color: Type[Color] = Grey - color to fill the background with
+        - oversampling_factor: int = 1 - number of rectangles to sample at each location
     """
     def __init__(self, height: int, width: int, lengths=List[int],
             horizontalcolor: Type[Color] = White, verticalcolor: Type[Color] = White,
+            backgroundcolor: Type[Color] = Grey,
             oversampling_factor: int = 1) -> None:
         super().__init__()
         self.height = height
@@ -27,6 +30,7 @@ class LineDataset(Dataset):
         self.lengths = lengths
         self.horizontalcolor = horizontalcolor
         self.verticalcolor = verticalcolor
+        self.backgroundcolor = backgroundcolor
         self.oversampling_factor = oversampling_factor
         self.lines = self.generate_all_lines()
 
@@ -40,7 +44,8 @@ class LineDataset(Dataset):
                         lines.append(
                             Stimulus(
                                 shape=Line(Pixel(x, y), l, Orientation.VERTICAL),
-                                pattern=self.verticalcolor()
+                                pattern=self.verticalcolor(),
+                                background_pattern=self.backgroundcolor()
                             )
                         )
         # generate horizontal lines
@@ -51,7 +56,8 @@ class LineDataset(Dataset):
                         lines.append(
                             Stimulus(
                                 shape=Line(Pixel(x, y), l, Orientation.HORIZONTAL),
-                                pattern=self.horizontalcolor()
+                                pattern=self.horizontalcolor(),
+                                background_pattern=self.backgroundcolor()
                             )
                         )
         return lines
@@ -70,18 +76,21 @@ class LineDataModule(LightningDataModule):
             batch_size: int = 32, num_workers: int = 4,
             horizontalcolor: Type[Color] = RandomRed,
             verticalcolor: Type[Color] = RandomBlue,
+            backgroundcolor: Type[Color] = Grey,
             validation_ratio: float = 0.0,
             oversampling_factor: int = 1):
         super().__init__()
         self.lengths = lengths
         self.horizontalcolor = horizontalcolor
         self.verticalcolor = verticalcolor
+        self.backgroundcolor = backgroundcolor
         self.save_hyperparameters(ignore=["lengths"])
 
     def prepare_data(self) -> None:
         self.dataset = LineDataset(self.hparams.height, self.hparams.width,
             self.lengths, horizontalcolor=self.horizontalcolor,
             verticalcolor=self.verticalcolor,
+            backgroundcolor=self.backgroundcolor,
             oversampling_factor=self.hparams.oversampling_factor)
         p_train = 1.0 - self.hparams.validation_ratio
         p_val = self.hparams.validation_ratio
