@@ -16,7 +16,8 @@ class SimpleConvNet(pl.LightningModule):
         self.layers = torch.nn.Sequential()
         for c, k in zip(channels_per_layer, kernel_sizes):
             self.layers.append(torch.nn.Conv2d(in_channels, c, k))
-            self.layers.append(torch.nn.ReLU())
+            self.layers.append(torch.nn.BatchNorm2d(c, affine=False))
+            self.layers.append(torch.nn.GELU())
             in_channels = c
         self.layers.append(torch.nn.AdaptiveAvgPool2d(1))
         self.layers.append(torch.nn.Flatten())

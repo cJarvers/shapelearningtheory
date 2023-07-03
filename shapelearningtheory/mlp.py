@@ -16,10 +16,12 @@ class MLP(pl.LightningModule):
         # generate layers:
         self.layers = torch.nn.Sequential()
         self.layers.append(torch.nn.Linear(num_inputs, num_hidden))
-        self.layers.append(torch.nn.ReLU())
+        self.layers.append(torch.nn.LayerNorm(num_hidden, elementwise_affine=False))
+        self.layers.append(torch.nn.GELU())
         for _ in range(num_layers - 2):
             self.layers.append(torch.nn.Linear(num_hidden, num_hidden))
-            self.layers.append(torch.nn.ReLU())
+            self.layers.append(torch.nn.LayerNorm(num_hidden, elementwise_affine=False))
+            self.layers.append(torch.nn.GELU())
         self.layers.append(torch.nn.Linear(num_hidden, num_outputs))
 
     def compute_loss(self, batch: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:

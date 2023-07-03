@@ -15,13 +15,16 @@ class AutoEncoder(pl.LightningModule):
             gamma: float=0.99):
         super().__init__()
         self.save_hyperparameters()
+        # initial batchnorm; the normed input is reconstructed
+        self.norm = torch.nn.LayerNorm(input_dim, elementwise_affine=False, eps=0.01)
         # generate encoder layers
         self.encoder = torch.nn.Sequential()
         previous_dim = input_dim
         for d in hidden_dims:
             self.encoder.append(torch.nn.Linear(previous_dim, d))
+            self.encoder.append(torch.nn.LayerNorm(d, elementwise_affine=False))
             previous_dim = d
-            self.encoder.append(torch.nn.ReLU())
+            self.encoder.append(torch.nn.GELU())
         self.encoder.append(torch.nn.Linear(previous_dim, representation_dim))
         # generate classifier layer
         self.classifier = torch.nn.Linear(representation_dim, num_classes)
@@ -30,11 +33,12 @@ class AutoEncoder(pl.LightningModule):
         previous_dim = representation_dim
         for d in reversed(hidden_dims):
             self.decoder.append(torch.nn.Linear(previous_dim, d))
+            self.decoder.append(torch.nn.LayerNorm(d, elementwise_affine=False))
             previous_dim = d
-            self.decoder.append(torch.nn.ReLU())
+            self.decoder.append(torch.nn.GELU())
         self.decoder.append(torch.nn.Linear(previous_dim, input_dim))
         # set up loss functions
-        self.reconstruction_loss = torch.nn.functional.mse_loss
+        self.reconstruction_loss = torch.nn.MSELoss()
         self.classification_loss = torch.nn.functional.cross_entropy
         self.classification_metric = torchmetrics.Accuracy('multiclass', num_classes=num_classes)
         # use manual optimization to use the two optimizers
@@ -70,17 +74,13 @@ class AutoEncoder(pl.LightningModule):
     
     def training_step(self, batch, batch_idx):
         x, y = batch
-        x = torch.flatten(x, start_dim=1)
+        x_flat = torch.flatten(x, start_dim=1)
+        x_norm = self.norm(x_flat)
         autoencode_optimizer, classify_optimizer = self.optimizers()
         # apply network and calculate losses
-        reconstruction, prediction = self.forward(x)
-        reconstruction_loss = self.reconstruction_loss(reconstruction, x)
-        self.log("reconstruction_loss_train", reconstruction_loss, prog_bar=True)
+        reconstruction, prediction = self.forward(x_norm)
+        reconstruction_loss = self.reconstruction_loss(reconstruction, x_norm)
         classification_loss = self.classification_loss(prediction, y)
-        self.log("train_loss", classification_loss, prog_bar=True)
-        with torch.no_grad():
-            accuracy = self.classification_metric(prediction, y)
-            self.log("train_metric", accuracy)
         # apply optimizers
         autoencode_optimizer.zero_grad()
         self.manual_backward(reconstruction_loss)
@@ -88,13 +88,25 @@ class AutoEncoder(pl.LightningModule):
         classify_optimizer.zero_grad()
         self.manual_backward(classification_loss)
         classify_optimizer.step()
+        # log metrics
+        with torch.no_grad():
+            self.log("reconstruction_loss_train", reconstruction_loss, prog_bar=True)
+            self.log("train_loss", classification_loss, prog_bar=True)
+            accuracy = self.classification_metric(prediction, y)
+            self.log("train_metric", accuracy)
+            if batch_idx == 0:
+                tensorboard = self.logger.experiment
+                tensorboard.add_image("input", x[0], global_step=self.global_step, dataformats="CHW")
+                tensorboard.add_image("input_normed", x_norm.reshape(x.size())[0], global_step=self.global_step, dataformats="CHW")
+                tensorboard.add_image("reconstruction", reconstruction.reshape(x.size())[0], global_step=self.global_step, dataformats="CHW")
 
     @torch.no_grad()
     def validation_step(self, batch, batch_idx):
         x, y = batch
         x = torch.flatten(x, start_dim=1)
-        reconstruction, prediction = self.forward(x)
-        reconstruction_loss = self.reconstruction_loss(reconstruction, x)
+        x_norm = self.norm(x)
+        reconstruction, prediction = self.forward(x_norm)
+        reconstruction_loss = self.reconstruction_loss(reconstruction, x_norm)
         self.log("reconstruction_loss_val", reconstruction_loss)
         classification_loss = self.classification_loss(prediction, y)
         self.log("val_loss", classification_loss)
@@ -105,8 +117,9 @@ class AutoEncoder(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         x = torch.flatten(x, start_dim=1)
-        reconstruction, prediction = self.forward(x)
-        reconstruction_loss = self.reconstruction_loss(reconstruction, x)
+        x_norm = self.norm(x)
+        reconstruction, prediction = self.forward(x_norm)
+        reconstruction_loss = self.reconstruction_loss(reconstruction, x_norm)
         self.log("reconstruction_loss_test", reconstruction_loss)
         classification_loss = self.classification_loss(prediction, y)
         self.log("test_loss", classification_loss)
