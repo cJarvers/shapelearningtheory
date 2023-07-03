@@ -7,9 +7,9 @@ sys.path.append("..")
 from shapelearningtheory.rectangledataset import RectangleDataModule
 from shapelearningtheory.squaredataset import SquaresDataModule
 from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
-from shapelearningtheory.mlp import MLP
-from shapelearningtheory.autoencoder import AutoEncoder
-from shapelearningtheory.convnet import SimpleConvNet
+from shapelearningtheory.networks.mlp import MLP
+from shapelearningtheory.networks.autoencoder import AutoEncoder
+from shapelearningtheory.networks.convnet import SimpleConvNet
 from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue, RandomGrey, RandomGreySingleChannel
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 

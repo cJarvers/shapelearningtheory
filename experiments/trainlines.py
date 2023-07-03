@@ -39,9 +39,9 @@ sys.path.append("..")
 from shapelearningtheory.linedataset import LineDataModule
 from shapelearningtheory.squaredataset import SquaresDataModule
 from shapelearningtheory.linearnetworks import ShallowLinear, DeepLinear
-from shapelearningtheory.mlp import MLP
-from shapelearningtheory.autoencoder import AutoEncoder
-from shapelearningtheory.convnet import SimpleConvNet
+from shapelearningtheory.networks.mlp import MLP
+from shapelearningtheory.networks.autoencoder import AutoEncoder
+from shapelearningtheory.networks.convnet import SimpleConvNet
 from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
 # hyper-parameters for the task
