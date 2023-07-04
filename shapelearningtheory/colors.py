@@ -150,3 +150,39 @@ class NotRedXORBlue(Color):
             c[0] = 1.0 - (c[0] * (self.max - self.min) + self.min)
             c[2] = 1.0 - (c[2] * (self.max - self.min) + self.min)
         return c.reshape(1, 1, 3)
+
+####################################
+# Color class set 3: R=B, B=G, G=R #
+####################################
+class RedEqBlue(Color):
+    """Generates random color values with the constraint that red and blue channels are equal. Green is 1 - red."""
+    def __init__(self):
+        super().__init__()
+
+    def colorval(self) -> Tensor:
+        c = torch.rand(3)
+        c[1] = c[0]
+        c[2] = 1 - c[0]
+        return c.reshape(1,1,3)
+    
+class BlueEqGreen(Color):
+    """Generates random color values with the constraint that blue and green channels are equal. Red is 1 - blue."""
+    def __init__(self):
+        super().__init__()
+
+    def colorval(self) -> Tensor:
+        c = torch.rand(3)
+        c[2] = c[1]
+        c[0] = 1 - c[1]
+        return c.reshape(1,1,3)
+    
+class GreenEqRed(Color):
+    """Generates random color values with the constraint that green and red channels are equal. Blue is 1 - green."""
+    def __init__(self):
+        super().__init__()
+
+    def colorval(self) -> Tensor:
+        c = torch.rand(3)
+        c[0] = c[2]
+        c[1] = 1 - c[2]
+        return c.reshape(1,1,3)
