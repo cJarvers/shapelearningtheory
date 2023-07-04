@@ -184,12 +184,12 @@ class LShape(Shape):
             y_vertical = self.start.y
         elif self.corner == "bottomright":
             x_horizontal = self.start.x
-            y_horizontal = self.start.y + self.height
+            y_horizontal = self.start.y + self.height - self.strength
             x_vertical = self.start.x + self.width - self.strength
             y_vertical = self.start.y
         elif self.corner == "bottomleft":
             x_horizontal = self.start.x
-            y_horizontal = self.start.y + self.height
+            y_horizontal = self.start.y + self.height - self.strength
             x_vertical = self.start.x
             y_vertical = self.start.y
         horizontalbar = Rectangle(
