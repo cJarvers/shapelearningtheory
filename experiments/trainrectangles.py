@@ -18,15 +18,15 @@ if use_color:
     nopattern = Grey
     channels = 3
 else:
-    pattern1 = VerticalGrating
-    pattern2 = HorizontalGrating
+    pattern1 = HorizontalGrating
+    pattern2 = VerticalGrating
     background = RandomGrey
     nopattern = Grey
     channels = 3
-imgsize = 36
-lengths=[4, 6, 9, 12]
-widths=[3, 4, 6, 9]
-oversample = 5
+imgsize = 15
+lengths=range(7, 13)
+widths=range(5, 9)
+oversample = 1
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
@@ -56,8 +56,8 @@ simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[
 autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden] * num_layers,
     representation_dim=500, num_classes=2)
 models = {
-    "mlp": mlp_model,
-    "conv": simpleconv_model,
+    #"mlp": mlp_model,
+    #"conv": simpleconv_model,
     "autoencoder": autoencoder
 }
 
