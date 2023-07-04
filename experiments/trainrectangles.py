@@ -6,7 +6,7 @@ import sys
 sys.path.append("..")
 from shapelearningtheory.datasets import RectangleDataModule, SquaresDataModule
 from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet
-from shapelearningtheory.colors import Grey, GreySingleChannel, RedXORBlue, NotRedXORBlue, RandomGrey, RandomGreySingleChannel
+from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomGrey
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
 # hyper-parameters for the task

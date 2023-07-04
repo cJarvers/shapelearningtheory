@@ -8,7 +8,7 @@ class Stimulus:
     Used to generate the actual stimulus picture."""
     def __init__(self, shape: Shape, pattern: Color | Texture,
             background_pattern: Optional[Color | Texture] = None,
-            wrap: bool=True, correct_range: bool=True):
+            wrap: bool=True, correct_range: bool=False):
         self.shape = shape
         self.pattern = pattern
         self.background_pattern = background_pattern
