@@ -55,14 +55,15 @@ epochs = 100
 # get data:
 # training dataset
 traindata = LineDataModule(imgsize, imgsize, lengths, horizontalcolor=color1, verticalcolor=color2, oversampling_factor=oversample)
-# alternative version: use squares to check that networks really can learn to distinguish the colors
-#traindata = SquaresDataModule(imgsize, imgsize, lengths, color1=color1, color2=color2) 
+# validation data uses same parameters, but due to randomization the images will be slightly different
+valdata = LineDataModule(imgsize, imgsize, lengths, horizontalcolor=color1, verticalcolor=color2, oversampling_factor=oversample)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     #"short": LineDataModule(imgsize, imgsize, [short], horizontalcolor=color1, verticalcolor=color2), # shorter lines, correct color
     #"long": LineDataModule(imgsize, imgsize, [long], horizontalcolor=color1, verticalcolor=color2), # longer lines, correct color
     "traindata": traindata,
+    "validation": valdata,
     "color only": SquaresDataModule(imgsize, imgsize, lengths, pattern1=color1, pattern2=color2), # correct color, but squares instead of lines (cannot classify by shape)
     "shape only": LineDataModule(imgsize, imgsize, lengths, horizontalcolor=Grey, verticalcolor=Grey), # medium length lines, no color
     "conflict": LineDataModule(imgsize, imgsize, lengths, horizontalcolor=color2, verticalcolor=color1) # medium length lines, incorrect color

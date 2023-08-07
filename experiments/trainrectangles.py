@@ -37,10 +37,13 @@ batchsize = 128
 # get data:
 # training dataset
 traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, oversampling_factor=oversample, batch_size=batchsize)
+# validation data uses same parameters, but due to randomization the images will be slightly different
+valdata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, oversampling_factor=oversample, batch_size=batchsize)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
+    "validation": valdata,
     "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, batch_size=batchsize), # correct color, but squares instead of rectangles (cannot classify by shape)
     "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=nopattern, pattern2=nopattern, background_pattern=background, batch_size=batchsize), # same rectangles but no color
     "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1, background_pattern=background, batch_size=batchsize) # same rectangles, incorrect color
@@ -56,8 +59,8 @@ simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[
 autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden] * num_layers,
     representation_dim=500, num_classes=2)
 models = {
-    #"mlp": mlp_model,
-    #"conv": simpleconv_model,
+    "mlp": mlp_model,
+    "conv": simpleconv_model,
     "autoencoder": autoencoder
 }
 

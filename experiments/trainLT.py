@@ -29,10 +29,14 @@ batchsize = 128
 # training dataset
 traindata = LTDataModule(imgsize, imgsize, heights=heights, widths=heights, strengths=strengths,
     patternL=patternL, patternT=patternT, background_pattern=background, batch_size=batchsize)
+# validation data uses same parameters, but due to randomization the images will be slightly different
+valdata = LTDataModule(imgsize, imgsize, heights=heights, widths=heights, strengths=strengths,
+    patternL=patternL, patternT=patternT, background_pattern=background, batch_size=batchsize)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
+    "validation": valdata,
     "color only": SquaresDataModule(imgsize, imgsize, heights, pattern1=patternL, # correct color, squares (no clear shape)
         pattern2=patternT, background_pattern=background, batch_size=batchsize, oversampling_factor=5),
     "shape only": LTDataModule(imgsize, imgsize, heights=heights, widths=heights, # same shapes but no color / texture
