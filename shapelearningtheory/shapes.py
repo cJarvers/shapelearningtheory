@@ -113,6 +113,11 @@ class Rectangle(Shape):
             y_max = y_min + self.length
         return x_min, x_max, y_min, y_max
     
+    def get_position(self):
+        "Return x and y coordinates of center of mass of the rectangle."
+        x_min, x_max, y_min, y_max = self._get_x_y()
+        return (x_min + x_max) / 2, (y_min + y_max) / 2
+    
     def all_pixels(self):
         x_min, x_max, y_min, y_max = self._get_x_y()
         return [Pixel(x, y)

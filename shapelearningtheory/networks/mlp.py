@@ -44,6 +44,15 @@ class MLP(pl.LightningModule):
         x = torch.flatten(x, start_dim=1)
         return self.layers(x)
     
+    def layer_activations(self, x):
+        x = torch.flatten(x, start_dim=1)
+        outputs = {'image': x}
+        for i, layer in enumerate(self.layers):
+            x = layer(x)
+            if isinstance(layer, torch.nn.Linear):
+                outputs["layer {}".format(i)] = x
+        return outputs
+    
     def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor],
             batch_idx: int) -> torch.Tensor:
         loss, metric = self.compute_loss(batch)
