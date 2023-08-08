@@ -85,7 +85,7 @@ class GreySingleChannel(SingleColor):
         return img + self.colorval()
     
 class RandomGrey(SingleColor):
-    def __init__(self, min=0.0, max=1.0):
+    def __init__(self, min=0.2, max=0.8):
         super().__init__()
         self.min = min
         self.max = max
@@ -95,7 +95,7 @@ class RandomGrey(SingleColor):
         return c
     
 class RandomGreySingleChannel(SingleColor):
-    def __init__(self, min=0.0, max=1.0):
+    def __init__(self, min=0.2, max=0.8):
         super().__init__()
         self.min = min
         self.max = max
