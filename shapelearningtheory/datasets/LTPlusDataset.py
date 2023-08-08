@@ -36,8 +36,8 @@ class LTPlusDataset(Dataset):
         for h in self.heights:
             for w in self.widths:
                 for s in self.strengths:
-                    for x in range(self.imgwidth - w):
-                        for y in range(self.imgheight - h):
+                    for x in range(2, self.imgwidth - w - 1):
+                        for y in range(2, self.imgheight - h - 1):
                             for corner in ["topright", "topleft", "bottomright", "bottomleft"]:
                                 ls.append(Stimulus(
                                     shape=LShape(

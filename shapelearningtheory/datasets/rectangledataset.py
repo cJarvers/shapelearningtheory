@@ -54,8 +54,8 @@ class RectangleDataset(Dataset):
         for l in self.lengths:
             for w in self.widths:
                 if w < l:
-                    for x in range(0, self.imgheight+1-l):
-                        for y in range(0, self.imgwidth+1-w):
+                    for x in range(2, self.imgheight-l-1):
+                        for y in range(2, self.imgwidth-w-1):
                             for _ in range(self.oversampling_factor):
                                 horizontal.append(
                                     Stimulus(
@@ -69,8 +69,8 @@ class RectangleDataset(Dataset):
                                         background_pattern=self.background_pattern()
                                     )
                                 )
-                    for x in range(0, self.imgheight+1-w):
-                        for y in range(0, self.imgwidth+1-l):
+                    for x in range(2, self.imgheight-w-1):
+                        for y in range(2, self.imgwidth-l-1):
                             for _ in range(self.oversampling_factor):
                                 vertical.append(
                                     Stimulus(

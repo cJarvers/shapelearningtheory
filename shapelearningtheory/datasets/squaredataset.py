@@ -41,8 +41,8 @@ class SquareDataset(Dataset):
         squares1 = []
         # generate class 1
         for l in self.sidelengths:
-            for x in range(0, self.height+1-l, l):
-                for y in range(0, self.width+1-l, l):
+            for x in range(2, self.height-l-1, l):
+                for y in range(1, self.width-l, l):
                     for _ in range(self.oversampling_factor):
                         squares1.append(
                             Stimulus(
@@ -54,8 +54,8 @@ class SquareDataset(Dataset):
         # generate class 2
         squares2 = []
         for l in self.sidelengths:
-            for x in range(0, self.height+1-l, l):
-                for y in range(0, self.width+1-l, l):
+            for x in range(2, self.height-l-1, l):
+                for y in range(2, self.width-l-1, l):
                     for _ in range(self.oversampling_factor):
                         squares2.append(
                             Stimulus(
