@@ -37,7 +37,7 @@ def make_color_mlp(imageheight, imagewidth, min_pixels=35, max_pixels=117):
     layer2.bias.data = torch.tensor([-threshold, threshold])
     #
     # Create network:
-    return torch.nn.Sequential(layer1, torch.nn.ReLU(), layer2)
+    return torch.nn.Sequential(torch.nn.Flatten(), layer1, torch.nn.ReLU(), layer2)
 
 @torch.no_grad()
 def make_color_convnet():
