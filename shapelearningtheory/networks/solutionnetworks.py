@@ -1,6 +1,7 @@
 # Small networks with pre-specified weights that "solve" the datasets with pre-specified strategies.
 import torch
 
+@torch.no_grad()
 def make_color_mlp(imageheight, imagewidth, min_pixels=35, max_pixels=117):
     """Generate a 2-layer neural network with 4 neurons that classifies images
     as RedXORBlue or NotRedXORBlue. It assumes that the background has homogenous
@@ -38,11 +39,11 @@ def make_color_mlp(imageheight, imagewidth, min_pixels=35, max_pixels=117):
     # Create network:
     return torch.nn.Sequential(layer1, torch.nn.ReLU(), layer2)
 
-
+@torch.no_grad()
 def make_color_convnet():
     raise NotImplementedError()
 
-
+@torch.no_grad()
 def make_rectangle_convnet():
     # Create first layer:
     # Detect horizontal and vertical contrast with sobel filters
