@@ -1,5 +1,6 @@
 import torch
 from torch.func import vmap, jacrev
+from torch.nn.functional import cosine_similarity
 
 def get_activations(net, x):
     """
@@ -17,9 +18,9 @@ def get_activations(net, x):
 
 def compute_jacobian(net, images: torch.Tensor, **kwargs):
     """Compute the jacobian of `net` on `images`.
-    For N images with P pixels each and M neurons in the output layer of `net`,
-    this will result in an N x M x P tensor, where the vector [n, m, :] is the
-    gradient of neuron m for image n. That is, using this vector to perform
+    For B images with P pixels each and M neurons in the output layer of `net`,
+    this will result in an B x M x P tensor, where the vector [b, m, :] is the
+    gradient of neuron m for image b. That is, using this vector to perform
     gradient ascent in image n should increase the activation of neuron m.
     
     Additional kwargs are passed on to vmap."""
@@ -34,3 +35,12 @@ def compute_jacobian(net, images: torch.Tensor, **kwargs):
     if is_training:
         net.train()
     return jacobian
+
+
+def compute_gradient_alignment(net1, net2, images: torch.Tensor):
+    """Computes the alignment between image gradients of all output neurons in
+    `net1` to all output neurons in `net2`.""" # with B = batch size, P = number of pixels
+    jacobian1 = compute_jacobian(net1, images) # size B x M x P,   M = number of output neurons of net1
+    jacobian2 = compute_jacobian(net2, images) # size B x N x P,   N = number of output neurons of net2
+    similarity = cosine_similarity(jacobian1.unsqueeze(1), jacobian2.unsqueeze(2))
+    return similarity                          # size B x M x N

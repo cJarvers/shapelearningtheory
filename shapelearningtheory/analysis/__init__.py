@@ -1,1 +1,1 @@
-from .helpers import get_activations, compute_jacobian
+from .helpers import get_activations, compute_jacobian, compute_gradient_alignment
