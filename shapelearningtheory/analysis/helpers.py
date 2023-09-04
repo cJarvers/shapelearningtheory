@@ -42,5 +42,5 @@ def compute_gradient_alignment(net1, net2, images: torch.Tensor):
     `net1` to all output neurons in `net2`.""" # with B = batch size, P = number of pixels
     jacobian1 = compute_jacobian(net1, images) # size B x M x P,   M = number of output neurons of net1
     jacobian2 = compute_jacobian(net2, images) # size B x N x P,   N = number of output neurons of net2
-    similarity = cosine_similarity(jacobian1.unsqueeze(1), jacobian2.unsqueeze(2))
+    similarity = cosine_similarity(jacobian1.unsqueeze(1), jacobian2.unsqueeze(2), dim=3)
     return similarity                          # size B x M x N
