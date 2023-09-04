@@ -12,7 +12,7 @@ class ShallowLinear(pl.LightningModule):
         self.layer = torch.nn.Linear(num_inputs, num_outputs)
         self.loss_fun = loss_fun
         self.metric = metric
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["metric", "loss_fun"])
 
     def compute_loss(self, batch: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         x, y = batch

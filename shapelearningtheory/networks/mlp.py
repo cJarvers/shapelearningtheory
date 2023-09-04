@@ -12,7 +12,7 @@ class MLP(pl.LightningModule):
         super().__init__()
         self.loss_fun = loss_fun
         self.metric = metric
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["loss_fun", "metric"])
         # generate layers:
         self.layers = torch.nn.Sequential()
         self.layers.append(torch.nn.Linear(num_inputs, num_hidden))

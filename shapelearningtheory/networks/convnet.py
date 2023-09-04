@@ -9,7 +9,7 @@ class SimpleConvNet(pl.LightningModule):
             lr: float=0.01, weight_decay: float=1e-4, momentum: float=0.9,
             gamma: float=0.99):
         super().__init__()
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=["metric", "loss_fun"])
         self.loss_fun = loss_fun
         self.metric = metric
         # generate layers
