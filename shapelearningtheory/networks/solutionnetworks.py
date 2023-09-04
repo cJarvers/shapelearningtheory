@@ -39,9 +39,37 @@ def make_color_mlp(imageheight, imagewidth, min_pixels=35, max_pixels=117):
     # Create network:
     return torch.nn.Sequential(torch.nn.Flatten(), layer1, torch.nn.ReLU(), layer2)
 
+
 @torch.no_grad()
-def make_color_convnet():
-    raise NotImplementedError()
+def make_color_convnet(imageheight, imagewidth, min_pixels=35, max_pixels=117):
+    # Create first layer: 2 channels
+    layer1 = torch.nn.Conv2d(3, 2, 1)
+    layer1.weight.data[0] = torch.tensor([1.0, 0.0, -1.0]).reshape(3,1,1) # First channel detects if red is much larger than blue
+    layer1.weight.data[1] = torch.tensor([-1.0, 0.0, 1.0]).reshape(3,1,1) # Second channel detects if blue is much larger than red
+    layer1.bias.data = torch.zeros(2) #torch.ones(2) * -0.1
+    # This layer is followed by global average pooling.
+    #
+    # Create fully connected layer for classification
+    layer2 = torch.nn.Linear(2, 2)
+    # The first neuron represents class RedXORBlue and responds if either R-B or B-R is large (above 0.8 * min_pixels).
+    # The second neuron represents class NotRedXORBlue and responds if R-B and B-R are both small (below 0.1 * max_pixels).
+    # We set the threshold halfway between the two class boundaries
+    max_for_NotRedXORBlue = max_pixels * 0.1 / (imageheight * imagewidth)
+    min_for_RedXORBlue = min_pixels * 0.8 / (imageheight * imagewidth)
+    if max_for_NotRedXORBlue > min_for_RedXORBlue:
+        raise ValueError("Cannot correctly set threshold.")
+    threshold = (min_for_RedXORBlue + max_for_NotRedXORBlue) / 2
+    layer2.weight.data = torch.tensor([[1.0, 1.0], [-1.0, -1.0]])
+    layer2.bias.data = torch.tensor([-threshold, threshold])
+    # 
+    # Create network:
+    return torch.nn.Sequential(
+        layer1,
+        torch.nn.ReLU(),
+        torch.nn.AdaptiveAvgPool2d(output_size=1),
+        torch.nn.Flatten(),
+        layer2)
+
 
 @torch.no_grad()
 def make_rectangle_convnet():
