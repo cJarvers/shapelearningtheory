@@ -15,13 +15,14 @@ class SimpleConvNet(pl.LightningModule):
         # generate layers
         self.layers = torch.nn.Sequential()
         for c, k in zip(channels_per_layer, kernel_sizes):
-            self.layers.append(torch.nn.Conv2d(in_channels, c, k))
-            self.layers.append(torch.nn.BatchNorm2d(c, affine=False))
-            self.layers.append(torch.nn.GELU())
+            block = torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels, c, k, padding="same"),
+                torch.nn.GroupNorm(c, c, affine=False),
+                torch.nn.GELU())
+            self.layers.append(block)
             in_channels = c
-        self.layers.append(torch.nn.AdaptiveAvgPool2d(1))
         self.layers.append(torch.nn.Flatten())
-        self.layers.append(torch.nn.Linear(in_channels, out_units))
+        self.layers.append(torch.nn.LazyLinear(out_units))
 
     def compute_loss(self, batch: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         x, y = batch
