@@ -15,6 +15,14 @@ def get_activations(net, x):
             outputs["layer {}".format(i)] = x
     return outputs
 
+def get_activations_dataset(net, data):
+    all_activations = [get_activations(net, x) for (x, y) in data]
+    keys = all_activations[0].keys()
+    return {
+        k: torch.concat([act[k] for act in all_activations], dim=0)
+        for k in keys
+    }
+
 
 def compute_jacobian(net, images: torch.Tensor, flatten: bool=True, **kwargs):
     """Compute the jacobian of `net` on `images`.

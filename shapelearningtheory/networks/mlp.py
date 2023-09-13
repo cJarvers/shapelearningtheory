@@ -15,6 +15,7 @@ class MLP(pl.LightningModule):
         self.save_hyperparameters(ignore=["loss_fun", "metric"])
         # generate layers:
         self.layers = torch.nn.Sequential()
+        self.layers.append(torch.nn.Flatten())
         self.layers.append(torch.nn.Linear(num_inputs, num_hidden))
         self.layers.append(torch.nn.LayerNorm(num_hidden, elementwise_affine=False))
         self.layers.append(torch.nn.GELU())
@@ -41,11 +42,9 @@ class MLP(pl.LightningModule):
         return [optimizer], [scheduler]
 
     def forward(self, x):
-        x = torch.flatten(x, start_dim=1)
         return self.layers(x)
     
     def layer_activations(self, x):
-        x = torch.flatten(x, start_dim=1)
         outputs = {'image': x}
         for i, layer in enumerate(self.layers):
             x = layer(x)
