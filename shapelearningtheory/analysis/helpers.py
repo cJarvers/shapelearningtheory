@@ -16,7 +16,7 @@ def get_activations(net, x):
     return outputs
 
 
-def compute_jacobian(net, images: torch.Tensor, **kwargs):
+def compute_jacobian(net, images: torch.Tensor, flatten: bool=True, **kwargs):
     """Compute the jacobian of `net` on `images`.
     For B images with P pixels each and M neurons in the output layer of `net`,
     this will result in an B x M x P tensor, where the vector [b, m, :] is the
@@ -28,7 +28,10 @@ def compute_jacobian(net, images: torch.Tensor, **kwargs):
     def reshape_and_apply(x):
         x = x.reshape((1, *images.size()[1:]))
         out = net(x)
-        return out.flatten()
+        if flatten:
+            return out.flatten()
+        else:
+            return out.squeeze(0)
     is_training = net.training
     net.eval() # BatchNorm has to be in eval mode, otherwise cannot compute jacobian due to in-place update
     jacobian = vmap(jacrev(reshape_and_apply), **kwargs)(flat)
