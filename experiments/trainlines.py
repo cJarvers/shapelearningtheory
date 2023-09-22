@@ -37,7 +37,7 @@ import sys
 # local imports
 sys.path.append("..")
 from shapelearningtheory.datasets import LineDataModule,SquaresDataModule
-from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet
+from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet, SoftmaxConvNet
 from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomRed, RandomBlue
 
 # hyper-parameters for the task
@@ -76,16 +76,24 @@ mlp_model = MLP(num_inputs=imgsize * imgsize * 3, num_hidden=num_hidden, num_lay
 simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
     in_channels=3, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
+softmaxconv_model = SoftmaxConvNet(
+    channels_per_layer=[16, 32, 64],
+    kernel_sizes=[3,3,3],
+    softmax_sizes=[7,7,7],
+    version="cscl",
+    in_channels=3, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
+    metric=Accuracy("multiclass", num_classes=2))
 autoencoder = AutoEncoder(input_dim=imgsize * imgsize * 3, hidden_dims=[num_hidden, num_hidden],
     representation_dim=100, num_classes=2)
 models = {
     "mlp": mlp_model,
     "conv": simpleconv_model,
+    "softmaxconv": softmaxconv_model,
     "autoencoder": autoencoder
 }
 
 # initialize trainers
-trainers = {name: pl.Trainer(max_epochs=epochs) for name in models.keys()}
+trainers = {name: pl.Trainer(max_epochs=epochs, accelerator="auto") for name in models.keys()}
 
 # train
 for name, model in models.items():

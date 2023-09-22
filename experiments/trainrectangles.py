@@ -5,7 +5,7 @@ import sys
 # local imports
 sys.path.append("..")
 from shapelearningtheory.datasets import RectangleDataModule, SquaresDataModule
-from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet
+from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet, SoftmaxConvNet
 from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomGrey
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
@@ -26,12 +26,12 @@ else:
 imgsize = 15
 lengths=range(7, 13)
 widths=range(5, 9)
-oversample = 1
+oversample = 5
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
 # hyper-parameters for training
-epochs = 500
+epochs = 100
 batchsize = 128
 
 # get data:
@@ -56,11 +56,19 @@ mlp_model = MLP(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, 
 simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
     in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
+softmaxconv_model = SoftmaxConvNet(
+    channels_per_layer=[16, 32, 64],
+    kernel_sizes=[3,3,3],
+    softmax_sizes=[7,7,7],
+    version="cscl",
+    in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
+    metric=Accuracy("multiclass", num_classes=2))
 autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden] * num_layers,
     representation_dim=500, num_classes=2)
 models = {
     "mlp": mlp_model,
     "conv": simpleconv_model,
+    "softmaxconv": softmaxconv_model,
     "autoencoder": autoencoder
 }
 
