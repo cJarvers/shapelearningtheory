@@ -5,7 +5,7 @@ import sys
 # local imports
 sys.path.append("..")
 from shapelearningtheory.datasets import LTDataModule, SquaresDataModule
-from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet, SoftmaxConvNet
+from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet, SoftmaxConvNet, RecurrentConvNet
 from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomGrey
 from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
@@ -54,6 +54,9 @@ mlp_model = MLP(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, 
 simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
     in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
+recurrentconv_model = RecurrentConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
+    in_channels=channels, out_units=2, num_steps=10, loss_fun=torch.nn.functional.cross_entropy, 
+    metric=Accuracy("multiclass", num_classes=2))
 softmaxconv_model = SoftmaxConvNet(
     channels_per_layer=[16, 32, 64],
     kernel_sizes=[5,5,5],
@@ -66,6 +69,7 @@ autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[n
 models = {
     "mlp": mlp_model,
     "conv": simpleconv_model,
+    "rconv": recurrentconv_model,
     "softmaxconv": softmaxconv_model,
     "autoencoder": autoencoder
 }
