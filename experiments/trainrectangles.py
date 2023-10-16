@@ -4,53 +4,45 @@ import pytorch_lightning as pl
 import sys
 # local imports
 sys.path.append("..")
-from shapelearningtheory.datasets import RectangleDataModule, SquaresDataModule
+from shapelearningtheory.datasets import make_rectangles_color, make_rectangles_texture, make_rectangles_coloronly, \
+    make_rectangles_textureonly, make_rectangles_shapeonly, make_rectangles_wrong_color, make_rectangles_wrong_texture
 from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet, SoftmaxConvNet, RecurrentConvNet, VisionTransformer
-from shapelearningtheory.colors import Grey, RedXORBlue, NotRedXORBlue, RandomGrey
-from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
 
 # hyper-parameters for the task
 use_color = False
-if use_color:
-    pattern1 = RedXORBlue
-    pattern2 = NotRedXORBlue
-    background = RandomGrey
-    nopattern = Grey
-    channels = 3
-else:
-    pattern1 = HorizontalGrating
-    pattern2 = VerticalGrating
-    background = RandomGrey
-    nopattern = Grey
-    channels = 3
-imgsize = 15
-lengths=range(7, 13)
-widths=range(5, 9)
-oversample = 5
 # hyper-parameters for the networks
 num_layers = 3
 num_hidden = 1000
 # hyper-parameters for training
 epochs = 100
-batchsize = 128
 
 # get data:
 # training dataset
-traindata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, oversampling_factor=oversample, batch_size=batchsize)
-# validation data uses same parameters, but due to randomization the images will be slightly different
-valdata = RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, oversampling_factor=oversample, batch_size=batchsize)
+if use_color:
+    traindata = make_rectangles_color()
+    # validation data uses same parameters, but due to randomization the images will be slightly different
+    valdata = make_rectangles_color()
+else:
+    traindata = make_rectangles_texture()
+    valdata = make_rectangles_texture()
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
     "validation": valdata,
-    "color only": SquaresDataModule(imgsize, imgsize, widths, pattern1=pattern1, pattern2=pattern2, background_pattern=background, batch_size=batchsize), # correct color, but squares instead of rectangles (cannot classify by shape)
-    "shape only": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=nopattern, pattern2=nopattern, background_pattern=background, batch_size=batchsize), # same rectangles but no color
-    "conflict": RectangleDataModule(imgsize, imgsize, lengths, widths, pattern1=pattern2, pattern2=pattern1, background_pattern=background, batch_size=batchsize) # same rectangles, incorrect color
+    "pattern only": make_rectangles_coloronly() if use_color else make_rectangles_textureonly(),
+    "shape only": make_rectangles_shapeonly(),
+    "conflict": make_rectangles_wrong_color() if use_color else make_rectangles_wrong_texture()
 }
 
+# hyperparameters from dataset
+traindata.prepare_data()
+imgheight = traindata.dataset.imgheight
+imgwidth = traindata.dataset.imgwidth
+channels = 3
+
 # define models
-mlp_model = MLP(num_inputs=imgsize * imgsize * channels, num_hidden=num_hidden, num_layers=num_layers,
+mlp_model = MLP(num_inputs=imgheight * imgwidth * channels, num_hidden=num_hidden, num_layers=num_layers,
     num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
 simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
@@ -67,10 +59,10 @@ softmaxconv_model = SoftmaxConvNet(
     in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
 transformer_model = VisionTransformer(
-    image_size=imgsize, patch_size=3, num_layers=12, num_heads=8, hidden_dim=128, mlp_dim=num_hidden,
+    image_size=imgheight, patch_size=3, num_layers=12, num_heads=8, hidden_dim=128, mlp_dim=num_hidden,
     num_classes=2, loss_fun=torch.nn.functional.cross_entropy, 
     metric=Accuracy("multiclass", num_classes=2))
-autoencoder = AutoEncoder(input_dim=imgsize * imgsize * channels, hidden_dims=[num_hidden] * num_layers,
+autoencoder = AutoEncoder(input_dim=imgheight * imgwidth * channels, hidden_dims=[num_hidden] * num_layers,
     representation_dim=500, num_classes=2)
 models = {
     "mlp": mlp_model,
