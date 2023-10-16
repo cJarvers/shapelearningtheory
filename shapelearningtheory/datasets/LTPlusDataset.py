@@ -162,11 +162,12 @@ class LTDataset(Dataset):
     def _generate_stimuli(self):
         ls = []
         ts = []
+        pad = 2
         for h in self.heights:
             for w in self.widths:
                 for s in self.strengths:
-                    for x in range(self.imgwidth - w):
-                        for y in range(self.imgheight - h):
+                    for x in range(pad, self.imgwidth - w - pad):
+                        for y in range(pad, self.imgheight - h - pad):
                             for corner in ["topright", "topleft", "bottomright", "bottomleft"]:
                                 ls.append(Stimulus(
                                     shape=LShape(
