@@ -6,13 +6,11 @@ import sys
 sys.path.append("..")
 from shapelearningtheory.datasets import make_rectangles_color, make_rectangles_texture, make_rectangles_coloronly, \
     make_rectangles_textureonly, make_rectangles_shapeonly, make_rectangles_wrong_color, make_rectangles_wrong_texture
-from shapelearningtheory.networks import MLP, AutoEncoder, SimpleConvNet, SoftmaxConvNet, RecurrentConvNet, VisionTransformer
+from shapelearningtheory.networks import make_mlp_small, make_convnet_small, make_rconvnet_small, \
+    make_softmaxconv_small, make_ViT_small, make_AE_small
 
 # hyper-parameters for the task
 use_color = False
-# hyper-parameters for the networks
-num_layers = 3
-num_hidden = 1000
 # hyper-parameters for training
 epochs = 100
 
@@ -40,37 +38,16 @@ traindata.prepare_data()
 imgheight = traindata.dataset.imgheight
 imgwidth = traindata.dataset.imgwidth
 channels = 3
+classes = 2
 
 # define models
-mlp_model = MLP(num_inputs=imgheight * imgwidth * channels, num_hidden=num_hidden, num_layers=num_layers,
-    num_outputs=2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
-simpleconv_model = SimpleConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
-    in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
-recurrentconv_model = RecurrentConvNet(channels_per_layer=[16, 32, 64], kernel_sizes=[3,3,3],
-    in_channels=channels, out_units=2, num_steps=10, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
-softmaxconv_model = SoftmaxConvNet(
-    channels_per_layer=[16, 32, 64],
-    kernel_sizes=[3,3,3],
-    softmax_sizes=[7,7,7],
-    version="cscl",
-    in_channels=channels, out_units=2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
-transformer_model = VisionTransformer(
-    image_size=imgheight, patch_size=3, num_layers=12, num_heads=8, hidden_dim=128, mlp_dim=num_hidden,
-    num_classes=2, loss_fun=torch.nn.functional.cross_entropy, 
-    metric=Accuracy("multiclass", num_classes=2))
-autoencoder = AutoEncoder(input_dim=imgheight * imgwidth * channels, hidden_dims=[num_hidden] * num_layers,
-    representation_dim=500, num_classes=2)
 models = {
-    "mlp": mlp_model,
-    "conv": simpleconv_model,
-    "rconv": recurrentconv_model,
-    "softmaxconv": softmaxconv_model,
-    "ViT": transformer_model,
-    "autoencoder": autoencoder
+    "mlp": make_mlp_small(num_inputs=imgheight * imgwidth * channels, num_outputs=classes),
+    "conv": make_convnet_small(channels=channels, classes=classes),
+    "rconv": make_rconvnet_small(channels=channels, classes=classes),
+    "softmaxconv": make_softmaxconv_small(channels=channels, classes=classes),
+    "ViT": make_ViT_small(imgsize=imgheight, classes=classes),
+    "autoencoder": make_AE_small(num_inputs=imgheight * imgwidth * channels, classes=classes)
 }
 
 # initialize trainers
@@ -79,7 +56,6 @@ trainers = {name: pl.Trainer(max_epochs=epochs, accelerator="gpu") for name in m
 # train
 for name, model in models.items():
     trainers[name].fit(model, traindata)
-
 
 # test generalization with shorter and longer lines
 test_results = {}
