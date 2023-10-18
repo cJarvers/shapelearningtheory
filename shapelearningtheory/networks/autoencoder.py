@@ -94,7 +94,7 @@ class AutoEncoder(pl.LightningModule):
             self.log("train_loss", classification_loss, prog_bar=True)
             accuracy = self.classification_metric(prediction, y)
             self.log("train_metric", accuracy)
-            if batch_idx == 0:
+            if batch_idx == 0 and self.logger:
                 tensorboard = self.logger.experiment
                 tensorboard.add_image("input", x[0], global_step=self.global_step, dataformats="CHW")
                 tensorboard.add_image("input_normed", x_norm.reshape(x.size())[0], global_step=self.global_step, dataformats="CHW")
