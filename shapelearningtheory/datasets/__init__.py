@@ -40,8 +40,8 @@ def make_rectangles_shapeonly():
 def make_rectangles_coloronly():
     """Standard parametrization for colored squares (no shape feature)."""
     dataset = SquaresDataModule(
-        imgheight=15, imgwidth=15,
-        widths=range(5, 9),
+        height=15, width=15,
+        lengths=range(5, 9),
         pattern1=RedXORBlue, pattern2=NotRedXORBlue,
         background_pattern=RandomGrey,
         oversampling_factor=5, batch_size=128)
@@ -75,4 +75,47 @@ def make_rectangles_wrong_texture():
         pattern1=VerticalGrating, pattern2=HorizontalGrating,
         background_pattern=RandomGrey,
         oversampling_factor=5, batch_size=128)
+    return dataset
+
+
+def make_LT_color():
+    """Standard parametrization for LT dataset (small)."""
+    dataset = LTDataModule(
+        imgheight=18, imgwidth=18,
+        heights=range(8, 12), widths=range(8, 12),
+        strengths=range(1, 3),
+        patternL=RedXORBlue, patternT=NotRedXORBlue,
+        background_pattern=RandomGrey,
+        batch_size=128)
+    return dataset
+
+def make_LT_shapeonly():
+    """LT dataset (small) without color/texture feature."""
+    dataset = LTDataModule(
+        imgheight=18, imgwidth=18,
+        heights=range(8, 12), widths=range(8, 12),
+        strengths=range(1, 3),
+        patternL=Grey, patternT=Grey,
+        background_pattern=RandomGrey,
+        batch_size=128)
+    return dataset
+
+def make_LT_coloronly():
+    dataset = SquaresDataModule(
+        height=18, width=18,
+        lengths=range(8,12),
+        pattern1=RedXORBlue, pattern2=NotRedXORBlue, # correct color, squares (no clear shape)
+        background_pattern=RandomGrey,
+        batch_size=128,
+        oversampling_factor=4)
+    return dataset
+
+def make_LT_wrong_color():
+    dataset = LTDataModule(
+        imgheight=18, imgwidth=18,
+        heights=range(8, 12), widths=range(8, 12),
+        strengths=range(1, 3),
+        patternL=NotRedXORBlue, patternT=RedXORBlue,
+        background_pattern=RandomGrey,
+        batch_size=128)
     return dataset
