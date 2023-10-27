@@ -5,7 +5,7 @@ sys.path.append("..")
 from shapelearningtheory.datasets import make_rectangles_coloronly, make_rectangles_shapeonly
 from shapelearningtheory.networks import make_mlp_small, make_convnet_small, make_rconvnet_small, \
     make_softmaxconv_small, make_ViT_small, make_AE_small
-from helpers import print_table
+from helpers import print_table, train_and_validate
 
 # hyper-parameters for training
 epochs = 100
@@ -38,20 +38,12 @@ models = {
     "autoencoder": make_AE_small(num_inputs=imgheight * imgwidth * channels, classes=classes)
 }
 
-# initialize trainers
-trainers = {name: pl.Trainer(max_epochs=epochs, accelerator="gpu",
-                             logger=False, enable_checkpointing=False) for name in models.keys()}
-
-# train
-for name, model in models.items():
-    trainers[name].fit(model, traindata)
-
-# test generalization with shorter and longer lines
+# train and test
 test_results = {}
 for name, model in models.items():
-    results = {}
-    for testname, testset in test_sets.items():
-        results[testname] = trainers[name].test(model, testset, verbose=False)
-    test_results[name] = results
+    test_results[name] = train_and_validate(
+        model, traindata, test_sets, repetitions=2, epochs=10
+    )
+
 # Print test results as table
 print_table(test_sets.keys(), test_results, cellwidth=15)
