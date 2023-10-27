@@ -86,12 +86,23 @@ def make_rectangles_wrong_texture(batchsize: int = 128):
 
 
 def make_LT_color(batchsize: int = 128):
-    """Standard parametrization for LT dataset (small)."""
+    """Standard parametrization for LT dataset (small, color)."""
     dataset = LTDataModule(
         imgheight=18, imgwidth=18,
         heights=range(7, 13), widths=range(7, 13),
         strengths=range(1, 3),
         patternL=RedXORBlue, patternT=NotRedXORBlue,
+        background_pattern=RandomGrey,
+        batch_size=batchsize)
+    return dataset
+
+def make_LT_texture(batchsize: int = 128):
+    """Standard parametrization for LT dataset (small, texture)."""
+    dataset = LTDataModule(
+        imgheight=18, imgwidth=18,
+        heights=range(7, 13), widths=range(7, 13),
+        strengths=range(1, 3),
+        patternL=HorizontalGrating, patternT=VerticalGrating,
         background_pattern=RandomGrey,
         batch_size=batchsize)
     return dataset
@@ -117,12 +128,32 @@ def make_LT_coloronly(batchsize: int = 128):
         oversampling_factor=4)
     return dataset
 
+def make_LT_textureonly(batchsize: int = 128):
+    dataset = SquaresDataModule(
+        height=18, width=18,
+        lengths=range(7, 13),
+        pattern1=HorizontalGrating, pattern2=VerticalGrating, # correct texture, squares (no clear shape)
+        background_pattern=RandomGrey,
+        batch_size=batchsize,
+        oversampling_factor=4)
+    return dataset
+
 def make_LT_wrong_color(batchsize: int = 128):
     dataset = LTDataModule(
         imgheight=18, imgwidth=18,
         heights=range(7, 13), widths=range(7, 13),
         strengths=range(1, 3),
         patternL=NotRedXORBlue, patternT=RedXORBlue,
+        background_pattern=RandomGrey,
+        batch_size=batchsize)
+    return dataset
+
+def make_LT_wrong_texture(batchsize: int = 128):
+    dataset = LTDataModule(
+        imgheight=18, imgwidth=18,
+        heights=range(7, 13), widths=range(7, 13),
+        strengths=range(1, 3),
+        patternL=VerticalGrating, patternT=HorizontalGrating,
         background_pattern=RandomGrey,
         batch_size=batchsize)
     return dataset
