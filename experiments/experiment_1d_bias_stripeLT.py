@@ -1,4 +1,5 @@
-import pytorch_lightning as pl
+from matplotlib import pyplot as plt
+import seaborn as sns
 import sys
 # local imports
 sys.path.append("..")
@@ -6,7 +7,7 @@ from shapelearningtheory.datasets import make_LT_texture, make_LT_textureonly, \
     make_LT_shapeonly, make_LT_wrong_texture
 from shapelearningtheory.networks import make_mlp_small, make_convnet_small, make_rconvnet_small, \
     make_softmaxconv_small, make_ViT_small, make_AE_small
-from helpers import print_table, train_and_validate
+from helpers import print_table, train_and_validate, unpack_results
 
 # hyper-parameters for training
 epochs = 100
@@ -45,8 +46,14 @@ models = {
 test_results = {}
 for name, model in models.items():
     test_results[name] = train_and_validate(
-        model, traindata, test_sets, repetitions=2, epochs=10
+        model, traindata, test_sets,
     )
 
 # Print test results as table
 print_table(test_sets.keys(), test_results, cellwidth=15)
+# Plot results as bar plot
+df = unpack_results(test_results)
+fig, ax = plt.subplots()
+sns.barplot(df, x="dataset", y="metric", hue="model", ax=ax)
+fig.suptitle("Accuracy on stripted LvT")
+plt.savefig("figures/exp1d_barplot.png")

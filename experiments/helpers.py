@@ -1,3 +1,4 @@
+import pandas as pd
 import pytorch_lightning as pl
 from statistics import mean
 from typing import Any, Callable, List
@@ -34,3 +35,17 @@ def train_and_validate(model_fun: Callable, train_data: Any,
                 for k, v in metrics[0].items():
                     validation_results[name][k].append(v)
     return validation_results
+
+def unpack_results(test_results):
+    models = []
+    datasets = []
+    metrics = []
+    for model, model_results in test_results.items():
+        for testname, result in model_results.items():
+            metric = result["test_metric"]
+            n = len(metric)
+            models.extend([model] * n)
+            datasets.extend([testname] * n)
+            metrics.extend(result["test_metric"])
+    df = pd.DataFrame({"model": models, "dataset": datasets, "metric": metrics})
+    return df
