@@ -1,5 +1,7 @@
 # Project-specific stuff:
 experiments/lightning_logs/
+experiments/*.ipynb
+experiments/figures/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
