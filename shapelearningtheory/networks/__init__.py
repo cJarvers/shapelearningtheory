@@ -1,3 +1,5 @@
+from torchvision.models.resnet import resnet50
+from torchvision.models.vision_transformer import vit_b_16
 from .autoencoder import AutoEncoder
 from .convnet import SimpleConvNet, RecurrentConvNet
 from .linearnetworks import ShallowLinear, DeepLinear
@@ -5,6 +7,7 @@ from .mlp import MLP
 from .softmaxnet import SpatialSoftmax2d, SoftmaxConvNet
 from .solutionnetworks import make_color_mlp, make_color_convnet, make_rectangle_convnet
 from .transformer import VisionTransformer
+from .trainingwrapper import TrainingWrapper
 
 
 ###########################
@@ -87,3 +90,20 @@ def make_AE_small(num_inputs, classes):
         representation_dim=500
     )
     return autoencoder
+
+def make_resnet50(classes):
+    """Standard config for ResNet50 to train on large datasets."""
+    net = TrainingWrapper(
+        net = resnet50(num_classes=classes),
+        loss_fun=torch.nn.functional.cross_entropy, 
+        metric=Accuracy("multiclass", num_classes=classes)
+    )
+    return net
+
+def make_vit_b_16(imgsize, classes):
+    net = TrainingWrapper(
+        net = vit_b_16(image_size=imgsize, num_classes=classes),
+        loss_fun=torch.nn.functional.cross_entropy, 
+        metric=Accuracy("multiclass", num_classes=classes)
+    )
+    return net
