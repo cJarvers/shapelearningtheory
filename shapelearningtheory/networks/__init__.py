@@ -1,5 +1,4 @@
 from torchvision.models.resnet import resnet50
-from torchvision.models.vision_transformer import vit_b_16
 from .autoencoder import AutoEncoder
 from .convnet import SimpleConvNet, RecurrentConvNet
 from .linearnetworks import ShallowLinear, DeepLinear
@@ -101,9 +100,15 @@ def make_resnet50(classes):
     return net
 
 def make_vit_b_16(imgsize, classes):
-    net = TrainingWrapper(
-        net = vit_b_16(image_size=imgsize, num_classes=classes),
+    vit = VisionTransformer(
+        image_size=imgsize,
+        num_classes=classes,
+        patch_size=16,
+        num_layers=12,
+        num_heads=12,
+        hidden_dim=768,
+        mlp_dim=3072,
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=classes)
+        metric=Accuracy("multiclass", num_classes=2)
     )
-    return net
+    return vit

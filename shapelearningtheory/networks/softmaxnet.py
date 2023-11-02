@@ -1,8 +1,8 @@
 import torch
 import torchvision
 from torch import Tensor
-import pytorch_lightning as pl
-from typing import Any, Callable, List, Literal, Tuple
+from typing import Callable, List, Literal
+from .trainingwrapper import TrainingWrapper
 
 class SpatialSoftmax2d(torch.nn.Module):
     """Non-linearity like layer that applies a softmax in a local neighborhood.
@@ -44,7 +44,7 @@ class SpatialSoftmax2d(torch.nn.Module):
         
 
 
-class SoftmaxConvNet(pl.LightningModule):
+class SoftmaxConvNet(TrainingWrapper):
     """
     """
     def __init__(self, channels_per_layer: List[int], kernel_sizes: List[int],
@@ -53,17 +53,17 @@ class SoftmaxConvNet(pl.LightningModule):
             version: Literal["ccsl", "cscl", "clcs"],
             lr: float=0.01, weight_decay: float=1e-2, momentum: float=0.9,
             gamma: float=0.99):
-        super().__init__()
-        # store and log hyperparameters
-        self.save_hyperparameters(ignore=["loss_fun", "metric"])
-        self.loss_fun = loss_fun
-        self.metric = metric
-        self.lr = lr
-        self.weight_decay = weight_decay
-        self.momentum = momentum
-        self.gamma = gamma
         # generate layers
-        self.layers = torch.nn.Sequential()
+        layers = self.build_layers(in_channels, out_units, channels_per_layer,
+            kernel_sizes, softmax_sizes, version)
+        # set up network
+        super().__init__(net=layers, loss_fun=loss_fun, metric=metric, lr=lr,
+            weight_decay=weight_decay, momentum=momentum, gamma=gamma)
+        
+
+    def build_layers(self, in_channels, out_units, channels_per_layer,
+            kernel_sizes, softmax_sizes, version):
+        layers = torch.nn.Sequential()
         for c, k, s in zip(channels_per_layer, kernel_sizes, softmax_sizes):
             # Three alternative ways of ordering the operations.
             # Performance can be subtly different, so leaving all three versions
@@ -105,50 +105,9 @@ class SoftmaxConvNet(pl.LightningModule):
                     torch.nn.GroupNorm(c, c, affine=False),
                     SpatialSoftmax2d(c, s, sigma=s/3, temperature=0.2),
                 )
-            self.layers.append(block)
+            layers.append(block)
             in_channels = c
-        #self.layers.append(torch.nn.AdaptiveAvgPool2d(15))
-        self.layers.append(torch.nn.Flatten())
-        self.layers.append(torch.nn.LazyLinear(out_units))
-
-    def compute_loss(self, batch: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
-        x, y = batch
-        p = self.forward(x)
-        loss = self.loss_fun(p, y)
-        with torch.no_grad():
-            metric = self.metric(p, y)
-        return loss, metric
-    
-    def configure_optimizers(self) -> Any:
-        optimizer = torch.optim.SGD(self.layers.parameters(), lr=self.lr,
-            momentum=self.momentum, weight_decay=self.weight_decay,
-            nesterov=True)
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer,
-            gamma=self.gamma)
-        return [optimizer], [scheduler]
-
-    def forward(self, x):
-        return self.layers(x)
-    
-    def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor],
-            batch_idx: int) -> torch.Tensor:
-        loss, metric = self.compute_loss(batch)
-        self.log("train_loss", loss.detach())
-        self.log("train_metric", metric)
-        return loss
-    
-    @torch.no_grad()
-    def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor],
-            batch_idx: int) -> torch.Tensor:
-        loss, metric = self.compute_loss(batch)
-        self.log("val_loss", loss)
-        self.log("val_metric", metric)
-        return loss
-
-    @torch.no_grad()
-    def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor],
-            batch_idx: int) -> torch.Tensor:
-        loss, metric = self.compute_loss(batch)
-        self.log("test_loss", loss)
-        self.log("test_metric", metric)
-        return loss
+        #layers.append(torch.nn.AdaptiveAvgPool2d(15))
+        layers.append(torch.nn.Flatten())
+        layers.append(torch.nn.LazyLinear(out_units))
+        return layers
