@@ -15,9 +15,22 @@ def make_rectangles_color(batchsize: int = 128):
         pattern1=RedXORBlue, pattern2=NotRedXORBlue,
         background_pattern=RandomGrey,
         oversampling_factor=5,
+        stride=1,
         batch_size=batchsize)
     return dataset
-    
+
+def make_rectangles_color_large(batchsize: int = 128):
+    """Standard parametrization for colored rectangles dataset (large)."""
+    dataset = RectangleDataModule(
+        imgheight=224, imgwidth=224, 
+        lengths=[50, 99, 100, 101, 150], widths=[49, 98, 99, 199, 149],
+        pattern1=RedXORBlue, pattern2=NotRedXORBlue,
+        background_pattern=RandomGrey,
+        oversampling_factor=2,
+        stride=20,
+        batch_size=batchsize)
+    return dataset
+
 def make_rectangles_texture(batchsize: int = 128):
     """Standard parametrization for striped rectangles dataset."""
     dataset = RectangleDataModule(
@@ -26,6 +39,19 @@ def make_rectangles_texture(batchsize: int = 128):
         pattern1=HorizontalGrating, pattern2=VerticalGrating,
         background_pattern=RandomGrey,
         oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
+
+def make_rectangles_texture_large(batchsize: int = 128):
+    """Standard parametrization for striped rectangles dataset."""
+    dataset = RectangleDataModule(
+        imgheight=224, imgwidth=224, 
+        lengths=[50, 99, 100, 101, 150], widths=[49, 98, 99, 199, 149],
+        pattern1=HorizontalGrating, pattern2=VerticalGrating,
+        background_pattern=RandomGrey,
+        oversampling_factor=2,
+        stride=20,
         batch_size=batchsize)
     return dataset
 
@@ -37,6 +63,19 @@ def make_rectangles_shapeonly(batchsize: int = 128):
         pattern1=Grey, pattern2=Grey,
         background_pattern=RandomGrey,
         oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
+
+def make_rectangles_shapeonly_large(batchsize: int = 128):
+    """Standard parametrization for rectangle dataset without color/texture."""
+    dataset = RectangleDataModule(
+        imgheight=224, imgwidth=224, 
+        lengths=[50, 99, 100, 101, 150], widths=[49, 98, 99, 199, 149],
+        pattern1=Grey, pattern2=Grey,
+        background_pattern=RandomGrey,
+        oversampling_factor=2,
+        stride=20,
         batch_size=batchsize)
     return dataset
 
@@ -48,6 +87,19 @@ def make_rectangles_coloronly(batchsize: int = 128):
         pattern1=RedXORBlue, pattern2=NotRedXORBlue,
         background_pattern=RandomGrey,
         oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
+
+def make_rectangles_coloronly_large(batchsize: int = 128):
+    """Standard parametrization for colored squares (no shape feature)."""
+    dataset = SquaresDataModule(
+        height=224, width=224, 
+        lengths=[50, 99, 100, 101, 150],
+        pattern1=RedXORBlue, pattern2=NotRedXORBlue,
+        background_pattern=RandomGrey,
+        oversampling_factor=2,
+        stride=20,
         batch_size=batchsize)
     return dataset
 
@@ -59,6 +111,19 @@ def make_rectangles_textureonly(batchsize: int = 128):
         pattern1=HorizontalGrating, pattern2=VerticalGrating,
         background_pattern=RandomGrey,
         oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
+
+def make_rectangles_textureonly_large(batchsize: int = 128):
+    """Standard parametrization for striped squares (no shape feature)."""
+    dataset = SquaresDataModule(
+        height=224, width=224, 
+        lengths=[50, 99, 100, 101, 150],
+        pattern1=HorizontalGrating, pattern2=VerticalGrating,
+        background_pattern=RandomGrey,
+        oversampling_factor=2,
+        stride=20,
         batch_size=batchsize)
     return dataset
 
@@ -70,6 +135,19 @@ def make_rectangles_wrong_color(batchsize: int = 128):
         pattern1=NotRedXORBlue, pattern2=RedXORBlue,
         background_pattern=RandomGrey,
         oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
+
+def make_rectangles_wrong_color_large(batchsize: int = 128):
+    """Cue conflict version of colored rectangles."""
+    dataset = RectangleDataModule(
+        imgheight=224, imgwidth=224, 
+        lengths=[50, 99, 100, 101, 150], widths=[49, 98, 99, 199, 149],
+        pattern1=NotRedXORBlue, pattern2=RedXORBlue,
+        background_pattern=RandomGrey,
+        oversampling_factor=2,
+        stride=20,
         batch_size=batchsize)
     return dataset
 
@@ -81,6 +159,19 @@ def make_rectangles_wrong_texture(batchsize: int = 128):
         pattern1=VerticalGrating, pattern2=HorizontalGrating,
         background_pattern=RandomGrey,
         oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
+
+def make_rectangles_wrong_texture_large(batchsize: int = 128):
+    """Cue conflict version of striped rectangles."""
+    dataset = RectangleDataModule(
+        imgheight=224, imgwidth=224, 
+        lengths=[50, 99, 100, 101, 150], widths=[49, 98, 99, 199, 149],
+        pattern1=VerticalGrating, pattern2=HorizontalGrating,
+        background_pattern=RandomGrey,
+        oversampling_factor=2,
+        stride=20,
         batch_size=batchsize)
     return dataset
 

@@ -24,6 +24,7 @@ class SquareDataset(Dataset):
             pattern1: Type[Color] | Type[Texture],
             pattern2: Type[Color] | Type[Texture],
             background_pattern: Type[Color] | Type[Texture] = Grey,
+            stride: int = 1,
             oversampling_factor: int = 1) -> None:
         super().__init__()
         self.height = height
@@ -32,6 +33,7 @@ class SquareDataset(Dataset):
         self.pattern1 = pattern1
         self.pattern2 = pattern2
         self.background_pattern = background_pattern
+        self.stride = stride
         self.oversampling_factor = oversampling_factor
         self.squares1, self.squares2 = self.generate_all_squares()
         self.num_class1 = len(self.squares1)
@@ -41,8 +43,8 @@ class SquareDataset(Dataset):
         squares1 = []
         # generate class 1
         for l in self.sidelengths:
-            for x in range(2, self.height-l-1, l):
-                for y in range(1, self.width-l, l):
+            for x in range(2, self.height-l-1, self.stride):
+                for y in range(1, self.width-l, self.stride):
                     for _ in range(self.oversampling_factor):
                         squares1.append(
                             Stimulus(
@@ -54,8 +56,8 @@ class SquareDataset(Dataset):
         # generate class 2
         squares2 = []
         for l in self.sidelengths:
-            for x in range(2, self.height-l-1, l):
-                for y in range(2, self.width-l-1, l):
+            for x in range(2, self.height-l-1, self.stride):
+                for y in range(2, self.width-l-1, self.stride):
                     for _ in range(self.oversampling_factor):
                         squares2.append(
                             Stimulus(
@@ -87,12 +89,14 @@ class SquaresDataModule(LightningDataModule):
             pattern2: Type[Color] | Type[Texture] = RandomBlue,
             background_pattern: Type[Color] | Type[Texture] = Grey,
             oversampling_factor: int = 1,
+            stride: int = 1,
             validation_ratio: float = 0.0):
         super().__init__()
         self.lengths = lengths
         self.pattern1 = pattern1
         self.pattern2 = pattern2
         self.background_pattern = background_pattern
+        self.stride = stride
         self.save_hyperparameters(ignore=["lengths"])
 
     def prepare_data(self) -> None:
@@ -100,6 +104,7 @@ class SquaresDataModule(LightningDataModule):
             self.lengths, pattern1=self.pattern1,
             pattern2=self.pattern2,
             background_pattern=self.background_pattern,
+            stride=self.stride,
             oversampling_factor=self.hparams.oversampling_factor)
         p_train = 1.0 - self.hparams.validation_ratio
         p_val = self.hparams.validation_ratio

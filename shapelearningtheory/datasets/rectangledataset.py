@@ -21,12 +21,14 @@ class RectangleDataset(Dataset):
         - pattern1: Type[Color] | Type[Texture] - color or texture type for class 1
         - pattern2: Type[Color] | Type[Texture] - color or texture type for class 2
         - background_pattern: Type[Color] | Type[Texture] - color or texture to fill the background with
+        - stride: int - step size between rectangle positions
         - oversampling_factor: int = 1 - number of rectangles to sample at each location
     """
     def __init__(self, imgheight: int, imgwidth: int, lengths: List[int],
             widths: List[int], pattern1: Type[Color] | Type[Texture],
             pattern2: Type[Color] | Type[Texture],
             background_pattern: Type[Color] | Type[Texture] = Grey,
+            stride: int = 1,
             oversampling_factor: int = 1):
         super().__init__()
         # store parameters
@@ -37,6 +39,7 @@ class RectangleDataset(Dataset):
         self.pattern1 = pattern1
         self.pattern2 = pattern2
         self.background_pattern = background_pattern
+        self.stride = stride
         self.oversampling_factor = oversampling_factor
         # generate dataset
         self.rectangles = self.generate_all_rectangles()
@@ -54,8 +57,8 @@ class RectangleDataset(Dataset):
         for l in self.lengths:
             for w in self.widths:
                 if w < l:
-                    for x in range(2, self.imgheight-l-1):
-                        for y in range(2, self.imgwidth-w-1):
+                    for x in range(2, self.imgheight-l-1, self.stride):
+                        for y in range(2, self.imgwidth-w-1, self.stride):
                             for _ in range(self.oversampling_factor):
                                 horizontal.append(
                                     Stimulus(
@@ -69,8 +72,8 @@ class RectangleDataset(Dataset):
                                         background_pattern=self.background_pattern()
                                     )
                                 )
-                    for x in range(2, self.imgheight-w-1):
-                        for y in range(2, self.imgwidth-l-1):
+                    for x in range(2, self.imgheight-w-1, self.stride):
+                        for y in range(2, self.imgwidth-l-1, self.stride):
                             for _ in range(self.oversampling_factor):
                                 vertical.append(
                                     Stimulus(
@@ -106,6 +109,7 @@ class RectangleDataModule(LightningDataModule):
             pattern1: Type[Color] | Type[Texture] = RandomRed,
             pattern2: Type[Color] | Type[Texture] = RandomBlue,
             background_pattern: Type[Color] | Type[Texture] = Grey,
+            stride: int = 1,
             validation_ratio: float = 0.0,
             oversampling_factor: int = 1):
         super().__init__()
@@ -114,6 +118,7 @@ class RectangleDataModule(LightningDataModule):
         self.pattern1 = pattern1
         self.pattern2 = pattern2
         self.background_pattern = background_pattern
+        self.stride = stride
         self.save_hyperparameters(ignore=["lengths", "widths"])
 
     def prepare_data(self) -> None:
@@ -121,6 +126,7 @@ class RectangleDataModule(LightningDataModule):
             self.hparams.imgheight, self.hparams.imgwidth, self.lengths,
             self.widths, self.pattern1, self.pattern2,
             background_pattern=self.background_pattern,
+            stride = self.stride,
             oversampling_factor=self.hparams.oversampling_factor
         )
         p_train = 1.0 - self.hparams.validation_ratio
