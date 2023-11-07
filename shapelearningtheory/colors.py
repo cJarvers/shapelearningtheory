@@ -4,12 +4,15 @@ from torch import Tensor
 
 class Color:
     "Base class"
+    def __init__(self):
+        self.color = self.colorval()
+
     def colorval(self) -> Tensor:
         raise NotImplementedError
     
     def fill_tensor(self, height, width) -> Tensor:
         img = torch.zeros((3, height, width))
-        return img + self.colorval().reshape(3,1,1)
+        return img + self.color.reshape(3,1,1)
 
 ################################################
 # Color class set 1: reds vs. greens vs. blues #
@@ -25,6 +28,7 @@ class RandomRed(SingleColor):
     def __init__(self, min=0.5, max=1.0):
         self.min = min
         self.max = max
+        super().__init__()
 
     def colorval(self) -> Tensor:
         c = torch.zeros(1, 1, 3)
@@ -39,6 +43,7 @@ class RandomGreen(SingleColor):
     def __init__(self, min=0.5, max=1.0):
         self.min = min
         self.max = max
+        super().__init__()
 
     def colorval(self) -> Tensor:
         c = torch.zeros(1, 1, 3)
@@ -53,6 +58,7 @@ class RandomBlue(SingleColor):
     def __init__(self, min=0.5, max=1.0):
         self.min = min
         self.max = max
+        super().__init__()
 
     def colorval(self) -> Tensor:
         c = torch.zeros(1, 1, 3)
@@ -61,21 +67,24 @@ class RandomBlue(SingleColor):
 
 # White / grey versions of SingleColors for testing generalization
 class White(SingleColor):
+    def __init__(self):
+        super().__init__()
+
     def colorval(self) -> Tensor:
         return torch.ones(1, 1, 3)
     
 class Grey(SingleColor):
     def __init__(self, brightness=0.5):
-        super().__init__()
         self.brightness = brightness
+        super().__init__()
 
     def colorval(self) -> Tensor:
         return self.brightness * torch.ones(1, 1, 3)
     
 class GreySingleChannel(SingleColor):
     def __init__(self, brightness=0.5):
-        super().__init__()
         self.brightness = brightness
+        super().__init__()
 
     def colorval(self) -> Tensor:
         return self.brightness * torch.ones(1, 1, 1)
@@ -86,9 +95,9 @@ class GreySingleChannel(SingleColor):
     
 class RandomGrey(SingleColor):
     def __init__(self, min=0.2, max=0.8):
-        super().__init__()
         self.min = min
         self.max = max
+        super().__init__()
 
     def colorval(self) -> Tensor:
         c = torch.rand(1).repeat(1, 1, 3) * (self.max - self.min) + self.min
@@ -96,9 +105,9 @@ class RandomGrey(SingleColor):
     
 class RandomGreySingleChannel(SingleColor):
     def __init__(self, min=0.2, max=0.8):
-        super().__init__()
         self.min = min
         self.max = max
+        super().__init__()
 
     def colorval(self) -> Tensor:
         c = torch.rand(1, 1, 1) * (self.max - self.min) + self.min
@@ -118,9 +127,9 @@ class RedXORBlue(Color):
     vice versa.
     """
     def __init__(self, min=0.9, max=1.0) -> None:
-        super().__init__()
         self.min = min
         self.max = max
+        super().__init__()
 
     def colorval(self) -> Tensor:
         c = torch.rand(3)
@@ -137,9 +146,9 @@ class NotRedXORBlue(Color):
     both between `min` and `max` or both between `1-max` and `1-min`.
     """
     def __init__(self, min=0.9, max=1.0) -> None:
-        super().__init__()
         self.min = min
         self.max = max
+        super().__init__()
 
     def colorval(self) -> Tensor:
         c = torch.rand(3)
