@@ -9,7 +9,9 @@ def get_activations(net, x):
     Assumes that iterating over `net` returns layers in correct order.
     """
     outputs = {'image': x}
-    for i, layer in enumerate(net):
+    layers = net.modules()
+    layers = filter(lambda x: not isinstance(x, torch.nn.Sequential), layers)
+    for i, layer in enumerate(layers):
         x = layer(x)
         if isinstance(layer, torch.nn.Conv2d) or isinstance(layer, torch.nn.Linear):
             outputs["layer {}".format(i)] = x
