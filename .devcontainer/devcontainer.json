@@ -12,7 +12,7 @@
 	"runArgs": [
 		"--gpus",
 		"all",
-		"--memory=16gb"
+		"--memory=24gb"
 	]
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
