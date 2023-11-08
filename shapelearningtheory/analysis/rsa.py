@@ -46,11 +46,29 @@ def get_shape_RDMs(dataset):
     return rsatoolbox.rdm.RDMs(
         np.concatenate(rdms, axis=0),
         dissimilarity_measure="Euclidean",
-        rdm_descriptors={"property": properties}
+        rdm_descriptors={
+            "property": properties,
+            "feature_type": ["shape"] * len(rdms)}
     )
 
 def get_color_RDMs(dataset):
-    pass
+    if isinstance(dataset, RectangleDataset):
+        properties = ["R", "G", "B", "abs(R-B)", "color"]
+        rdms = [
+            get_rectangle_redness_RDM(dataset),
+            get_rectangle_greenness_RDM(dataset),
+            get_rectangle_blueness_RDM(dataset),
+            get_rectangle_redblue_RDM(dataset),
+            get_rectangle_color_RDM(dataset)
+        ]
+    rdms = [np.expand_dims(rdm, 0) for rdm in rdms]
+    return rsatoolbox.rdm.RDMs(
+        np.concatenate(rdms, axis=0),
+        dissimilarity_measure="Euclidean",
+        rdm_descriptors={
+            "property": properties,
+            "feature_type": ["color"] * len(rdms)}
+    )
 
 def get_texture_RDMs(dataset):
     """
@@ -66,7 +84,9 @@ def get_texture_RDMs(dataset):
     return rsatoolbox.rdm.RDMs(
         np.concatenate(rdms, axis=0),
         dissimilarity_measure="Euclidean",
-        rdm_descriptors={"property": properties}
+        rdm_descriptors={
+            "property": properties,
+            "feature_type": ["texture"] * len(rdms)}
     )
 
 
@@ -112,8 +132,38 @@ def get_rectangle_position_RDM(dataset: RectangleDataset):
     rdm = np.sqrt(np.power(x_distances, 2) + np.power(y_distances, 2))
     return rdm
 
-def get_rectangle_color_RDM():
-    pass
+def get_rectangle_color_RDM(dataset: RectangleDataset):
+    colors = [rectangle.pattern.color for rectangle in dataset.rectangles]
+    colors = torch.cat(colors).squeeze()
+    rdm = torch.cdist(colors, colors).numpy()
+    return rdm
+
+def get_rectangle_redness_RDM(dataset: RectangleDataset):
+    red_intensity = [rectangle.pattern.color.squeeze()[0].item() for rectangle in dataset.rectangles]
+    red_intensity = np.expand_dims(np.array(red_intensity), 1)
+    rdm = np.abs(red_intensity.T - red_intensity)
+    return rdm
+
+def get_rectangle_greenness_RDM(dataset: RectangleDataset):
+    green_intensity = [rectangle.pattern.color.squeeze()[1].item() for rectangle in dataset.rectangles]
+    green_intensity = np.expand_dims(np.array(green_intensity), 1)
+    rdm = np.abs(green_intensity.T - green_intensity)
+    return rdm
+
+def get_rectangle_blueness_RDM(dataset: RectangleDataset):
+    blue_intensity = [rectangle.pattern.color.squeeze()[2].item() for rectangle in dataset.rectangles]
+    blue_intensity = np.expand_dims(np.array(blue_intensity), 1)
+    rdm = np.abs(blue_intensity.T - blue_intensity)
+    return rdm
+
+def get_rectangle_redblue_RDM(dataset: RectangleDataset):
+    red_intensity = [rectangle.pattern.color.squeeze()[0].item() for rectangle in dataset.rectangles]
+    blue_intensity = [rectangle.pattern.color.squeeze()[2].item() for rectangle in dataset.rectangles]
+    difference = np.abs(np.array(red_intensity) - np.array(blue_intensity))
+    difference = np.expand_dims(difference, 1)
+    rdm = np.abs(difference.T - difference)
+    return rdm
+
 
 def get_rectangle_texture_orientation_RDM(dataset: RectangleDataset):
     texture_orientations = np.array([
