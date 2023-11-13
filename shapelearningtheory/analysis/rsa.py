@@ -11,8 +11,8 @@ from .helpers import get_activations_dataset
 # Functions to get RDM groups #
 ###############################
 @torch.no_grad()
-def get_model_RDMs(model, dataloader):
-    activations = get_activations_dataset(model, dataloader)
+def get_model_RDMs(model, dataloader, use_image=True):
+    activations = get_activations_dataset(model, dataloader, use_image=use_image)
     layer_activations = [
         rsatoolbox.data.Dataset(activation.flatten(start_dim=1).numpy(), descriptors={"layer": name})
         for name, activation in activations.items()
