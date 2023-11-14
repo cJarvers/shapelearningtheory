@@ -4,7 +4,7 @@ from .rectangledataset import RectangleDataModule
 from .squaredataset import SquaresDataModule
 
 # Standard parameterizations of datasets used in experiments
-from ..colors import RedXORBlue, NotRedXORBlue, RandomGrey, Grey
+from ..colors import RedXORBlue, NotRedXORBlue, RandomGrey, Grey, RandomChoiceColor
 from ..textures import HorizontalGrating, VerticalGrating
 
 def make_rectangles_color(batchsize: int = 128):
@@ -175,6 +175,17 @@ def make_rectangles_wrong_texture_large(batchsize: int = 128):
         batch_size=batchsize)
     return dataset
 
+def make_rectangles_random_color(batchsize: int = 128):
+    """Similar to color rectangle dataset, but color assignment does not match shape class"""
+    dataset = RectangleDataModule(
+        imgheight=18, imgwidth=18, 
+        lengths=range(7, 13), widths=range(5, 10),
+        pattern1=RandomChoiceColor, pattern2=RandomChoiceColor,
+        background_pattern=RandomGrey,
+        oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
 
 def make_LT_color(batchsize: int = 128):
     """Standard parametrization for LT dataset (small, color)."""

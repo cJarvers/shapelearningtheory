@@ -195,3 +195,18 @@ class GreenEqRed(Color):
         c[0] = c[2]
         c[1] = 1 - c[2]
         return c.reshape(1,1,3)
+    
+########################################
+# Color class that combines two others #
+########################################
+class RandomChoiceColor(Color):
+    """Randomly chooses one of the two colors that were passed to it."""
+    def __init__(self, class1: Color = RedXORBlue, class2: Color = NotRedXORBlue):
+        if torch.rand(1).item() < 0.5:
+            self.__color = class1()
+        else:
+            self.__color = class2()
+        super().__init__()
+
+    def colorval(self):
+        return self.__color.colorval()
