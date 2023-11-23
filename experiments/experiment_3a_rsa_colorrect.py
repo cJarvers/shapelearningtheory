@@ -9,7 +9,7 @@ import sys
 sys.path.append("..")
 from shapelearningtheory.analysis.rsa import get_shape_RDMs, get_color_RDMs, get_model_RDMs
 from shapelearningtheory.datasets import make_rectangles_color, make_rectangles_random_color
-from shapelearningtheory.networks import make_convnet_small, make_color_convnet, make_rectangle_convnet
+from shapelearningtheory.networks import make_convnet_small, ColorConvNet, CRectangleConvNet
 
 # Load dataset
 traindata = make_rectangles_color()
@@ -28,8 +28,8 @@ print("Getting colour RDMs")
 color_rdms = get_color_RDMs(testdata.dataset)
 
 # Load constructed models and generate RDMs for them
-color_net = make_color_convnet(imageheight=imgheight, imagewidth=imgwidth)
-shape_net = make_rectangle_convnet()
+color_net = ColorConvNet(imageheight=imgheight, imagewidth=imgwidth)
+shape_net = CRectangleConvNet()
 print("Getting feature network RDMs")
 colornet_rdms = get_model_RDMs(color_net, testdata.test_dataloader(), use_image=False)
 colornet_rdms.dissimilarity_measure = "Euclidean"

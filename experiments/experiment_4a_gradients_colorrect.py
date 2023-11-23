@@ -13,7 +13,7 @@ from shapelearningtheory.analysis.gradients import *
 from shapelearningtheory.datasets import make_rectangles_color
 from shapelearningtheory.datasets import RectangleDataModule
 from shapelearningtheory.colors import RedXORBlue, NotRedXORBlue, RandomGrey
-from shapelearningtheory.networks import make_convnet_small, make_color_convnet, make_rectangle_convnet
+from shapelearningtheory.networks import make_convnet_small, ColorConvNet, CRectangleConvNet
 
 # Load dataset
 print("Loading data")
@@ -36,8 +36,8 @@ classes = 2
 
 # build networks
 print("Building networks")
-color_net = make_color_convnet(imageheight=imgheight, imagewidth=imgwidth)
-shape_net = make_rectangle_convnet()
+color_net = ColorConvNet(imageheight=imgheight, imagewidth=imgwidth)
+shape_net = CRectangleConvNet()
 net = make_convnet_small(channels=channels, classes=classes)
 p = net(next(iter(traindata.train_dataloader()))[0]) # call once to initialize lazy modules
 del p
