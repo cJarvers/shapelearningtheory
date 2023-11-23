@@ -3,7 +3,7 @@ import seaborn as sns
 import sys
 # local imports
 sys.path.append("..")
-from shapelearningtheory.datasets import make_rectangles_coloronly, make_rectangles_shapeonly
+from shapelearningtheory.datasets import make_rectangles_wrong_color, make_rectangles_shapeonly
 from shapelearningtheory.networks import make_mlp_small, make_convnet_small, make_rconvnet_small, \
     make_softmaxconv_small, make_ViT_small, make_AE_small
 from helpers import print_table, train_and_validate, unpack_results
@@ -19,7 +19,7 @@ traindata = make_rectangles_shapeonly()
 test_sets = {
     "traindata": traindata,
     "validation": make_rectangles_shapeonly(),
-    "pattern only": make_rectangles_coloronly()
+    "conflict": make_rectangles_wrong_color()
 }
 
 # hyperparameters from dataset
