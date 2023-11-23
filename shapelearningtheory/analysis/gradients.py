@@ -2,7 +2,7 @@
 # alignment between networks.
 import numpy as np
 import torch
-from torch import vmap, jacrev
+from torch.func import vmap, jacrev
 from torchmetrics.functional import pairwise_cosine_similarity
 
 def compute_jacobian(net, images: torch.Tensor, flatten: bool=True, **kwargs):
