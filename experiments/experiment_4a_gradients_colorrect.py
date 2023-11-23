@@ -9,7 +9,7 @@ from torch.func import vmap
 from torchmetrics.functional import pairwise_cosine_similarity
 # local imports
 sys.path.append("..")
-from shapelearningtheory.analysis.helpers import compute_gradient_alignment, compute_jacobian
+from shapelearningtheory.analysis.gradients import *
 from shapelearningtheory.datasets import make_rectangles_color
 from shapelearningtheory.datasets import RectangleDataModule
 from shapelearningtheory.colors import RedXORBlue, NotRedXORBlue, RandomGrey
@@ -53,30 +53,6 @@ net_layers = {"block 0": 1, "block 1": 2, "block 2": 3, "output": 5}
 # calculate gradient alignment before training
 max_batches = 200
 neurons_per_layer = 2000
-
-@torch.no_grad()
-def get_jacobians(net, dataset, max_batches=None, device="cuda", normalize=False):
-    jacobian_list = []
-    for i, (x, _) in enumerate(dataset):
-        x = x.to(device)
-        net = net.to(device)
-        if max_batches and i >= max_batches:
-            break
-        jacobian = compute_jacobian(net, x, chunk_size=1)
-        if normalize:
-            jacobian = torch.linalg.vector_norm(jacobian, dim=2, keepdim=True)
-        jacobian_list.append(
-            jacobian.detach().cpu().numpy()
-        )
-    return np.concatenate(jacobian_list, axis=0)
-
-
-def select_random_subset(jacobian: np.array, num_neurons: int):
-    """From a given jacobian of shape B x N x D, with N neurons,
-    select a random subset of num_neurons neurons"""
-    N = jacobian.shape[1]
-    inds = np.random.permutation(N)[:num_neurons]
-    return jacobian[:, inds, :]
     
 def get_net_jacobians(net, net_layers, data, neurons_per_layer):
     net_jacobians = {}
@@ -95,35 +71,6 @@ def get_feature_jacobians(color_net, color_net_layers, shape_net, shape_net_laye
         shape_subnet = shape_net[:index]
         feature_jacobians[layer] = get_jacobians(shape_subnet, data, max_batches)
     return feature_jacobians
-
-@torch.no_grad()
-def find_most_similar_gradient(grad: torch.Tensor, feature_grad: torch.Tensor
-                               ) -> torch.Tensor:
-    """For each gradient in grad, find the most similar one in jac2.
-    grad has dimensions N x D,
-    feature_grad has dimension M x D.
-    Comparison is done along the last dimension."""
-    inds = pairwise_cosine_similarity(grad, feature_grad).argmax(dim=1)
-    return feature_grad[inds]
-
-@torch.no_grad()
-def project_gradients_to_feature(grad: torch.Tensor, feature_grad: torch.Tensor
-                                 ) -> torch.Tensor:
-    alignment = pairwise_cosine_similarity(grad, feature_grad)
-    alignment.nan_to_num_()
-    result = torch.matmul(alignment, feature_grad)
-    return result
-
-@torch.no_grad()
-def compare_consistencies(grads: torch.Tensor, feature_grads: torch.Tensor,
-                          chunk_size: int=1) -> torch.Tensor:
-    consistency_fun = vmap(pairwise_cosine_similarity, in_dims=1, chunk_size=chunk_size)
-    grad_consistency = consistency_fun(grads)
-    feature_projection = vmap(project_gradients_to_feature, chunk_size=chunk_size)(
-        grads, feature_grads
-    )
-    feature_consistency = consistency_fun(feature_projection)
-    return grad_consistency * feature_consistency
 
 @torch.no_grad()
 def get_all_consistencies(net_jacobians, feature_jacobians):
