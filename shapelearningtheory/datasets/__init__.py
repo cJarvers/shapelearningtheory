@@ -5,7 +5,7 @@ from .squaredataset import SquaresDataModule
 
 # Standard parameterizations of datasets used in experiments
 from ..colors import RedXORBlue, NotRedXORBlue, RandomGrey, Grey, RandomChoiceColor
-from ..textures import HorizontalGrating, VerticalGrating
+from ..textures import HorizontalGrating, VerticalGrating, RandomGrating
 
 def make_rectangles_color(batchsize: int = 128):
     """Standard parametrization for colored rectangles dataset."""
@@ -181,6 +181,18 @@ def make_rectangles_random_color(batchsize: int = 128):
         imgheight=18, imgwidth=18, 
         lengths=range(7, 13), widths=range(5, 10),
         pattern1=RandomChoiceColor, pattern2=RandomChoiceColor,
+        background_pattern=RandomGrey,
+        oversampling_factor=5,
+        stride=1,
+        batch_size=batchsize)
+    return dataset
+
+def make_rectangles_random_texture(batchsize: int = 128):
+    """Similar to texture rectangle dataset, but texture orientation is random, independent of class."""
+    dataset = RectangleDataModule(
+        imgheight=18, imgwidth=18, 
+        lengths=range(7, 13), widths=range(5, 10),
+        pattern1=RandomGrating, pattern2=RandomGrating,
         background_pattern=RandomGrey,
         oversampling_factor=5,
         stride=1,

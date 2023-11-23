@@ -68,3 +68,10 @@ class VerticalGrating(SineGrating):
         orientation = torch.pi / 2 + torch.rand(1).item() * (2 * orientation_range) - orientation_range
         phase = 2 * torch.pi * torch.rand(1).item() / frequency
         super().__init__(frequency, orientation, phase)
+
+class RandomGrating(SineGrating):
+    def __init__(self, frequency_min=0.05, frequency_max=0.15):
+        frequency = torch.rand(1).item() * (frequency_max - frequency_min) + frequency_min
+        orientation = torch.rand(1).item() * torch.pi
+        phase = 2 * torch.pi * torch.rand(1).item() / frequency
+        super().__init__(frequency, orientation, phase)
