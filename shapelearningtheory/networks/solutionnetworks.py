@@ -1,5 +1,7 @@
 # Small networks with pre-specified weights that "solve" the datasets with pre-specified strategies.
+import numpy as np
 import torch
+from skimage.filters import gabor_kernel
 
 class ColorConvNet(torch.nn.Sequential):
     """Convolutional network that classifies RedXORBlue vs. NotRedXORBlue by construction."""
@@ -123,4 +125,61 @@ class CRectangleConvNet(torch.nn.Sequential):
         layer.bias.data.zero_()
         layer.weight.data[0] = torch.tensor([1.0, 1.0, 0.0, 0.0])
         layer.weight.data[1] = torch.tensor([0.0, 0.0, 1.0, 1.0])
+        return layer
+    
+class TextureConvNet(torch.nn.Sequential):
+    """Convolutional network that classifies input images based on
+    whether they contain a horizontal or vertical texture."""
+    def __init__(self):
+        super().__init__()
+        self.append(self.gabor_layer())
+        self.append(torch.nn.ReLU())
+        self.append(self.summation_layer())
+        self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
+        self.append(torch.nn.Flatten())
+
+    @torch.no_grad()
+    def gabor_layer(self) -> torch.nn.Conv2d:
+        horizontal_gabor = gabor_kernel(frequency=0.1, theta=np.pi/2, bandwidth=3)
+        vertical_gabor = gabor_kernel(frequency=0.1, theta=0, bandwidth=3)
+        kernel_size = horizontal_gabor.shape
+        layer = torch.nn.Conv2d(3, 24, kernel_size, bias=False, padding="same",
+            padding_mode="replicate")
+        layer.weight.data.zero_()
+        layer.weight[ 0, 0, :, :] = torch.from_numpy(  horizontal_gabor.real - horizontal_gabor.real.mean())
+        layer.weight[ 1, 0, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
+        layer.weight[ 2, 0, :, :] = torch.from_numpy(  horizontal_gabor.imag)
+        layer.weight[ 3, 0, :, :] = torch.from_numpy(- horizontal_gabor.imag)
+        layer.weight[ 4, 1, :, :] = torch.from_numpy(  horizontal_gabor.real - horizontal_gabor.real.mean())
+        layer.weight[ 5, 1, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
+        layer.weight[ 6, 1, :, :] = torch.from_numpy(  horizontal_gabor.imag)
+        layer.weight[ 7, 1, :, :] = torch.from_numpy(- horizontal_gabor.imag)
+        layer.weight[ 8, 2, :, :] = torch.from_numpy(  horizontal_gabor.real - horizontal_gabor.real.mean())
+        layer.weight[ 9, 2, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
+        layer.weight[10, 2, :, :] = torch.from_numpy(  horizontal_gabor.imag)
+        layer.weight[11, 2, :, :] = torch.from_numpy(- horizontal_gabor.imag)
+        layer.weight[12, 0, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
+        layer.weight[13, 0, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
+        layer.weight[14, 0, :, :] = torch.from_numpy(  vertical_gabor.imag)
+        layer.weight[15, 0, :, :] = torch.from_numpy(- vertical_gabor.imag)
+        layer.weight[16, 1, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
+        layer.weight[17, 1, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
+        layer.weight[18, 1, :, :] = torch.from_numpy(  vertical_gabor.imag)
+        layer.weight[19, 1, :, :] = torch.from_numpy(- vertical_gabor.imag)
+        layer.weight[20, 2, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
+        layer.weight[21, 2, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
+        layer.weight[22, 2, :, :] = torch.from_numpy(  vertical_gabor.imag)
+        layer.weight[23, 2, :, :] = torch.from_numpy(- vertical_gabor.imag)
+        return layer
+    
+    def summation_layer(self):
+        layer = torch.nn.Conv2d(
+            in_channels=24,
+            out_channels=2,
+            kernel_size=1,
+            bias=False
+        )
+        layer.weight.data.zero_()
+        layer.weight.data[0, 0:12] = 1.0
+        layer.weight.data[1, 12:24] = 1.0
         return layer
