@@ -1,6 +1,7 @@
 import torch
 from torch.func import vmap, jacrev
 from torch.nn.functional import cosine_similarity
+from torchmetrics.functional import pairwise_cosine_similarity
 
 def get_activations(net, x, use_image=True):
     """
@@ -53,10 +54,17 @@ def compute_jacobian(net, images: torch.Tensor, flatten: bool=True, **kwargs):
     return jacobian
 
 
-def compute_gradient_alignment(net1, net2, images: torch.Tensor):
+def compute_gradient_alignment(net1, net2, images: torch.Tensor, subsample_neurons=None):
     """Computes the alignment between image gradients of all output neurons in
     `net1` to all output neurons in `net2`.""" # with B = batch size, P = number of pixels
     jacobian1 = compute_jacobian(net1, images) # size B x M x P,   M = number of output neurons of net1
+    if subsample_neurons:
+        m = jacobian1.size(1)
+        inds = torch.randperm(m)[:subsample_neurons]
+        jacobian1 = jacobian1[:, inds, :]
     jacobian2 = compute_jacobian(net2, images) # size B x N x P,   N = number of output neurons of net2
-    similarity = cosine_similarity(jacobian1.unsqueeze(1), jacobian2.unsqueeze(2), dim=3)
+    #similarity = cosine_similarity(jacobian1.unsqueeze(1), jacobian2.unsqueeze(2), dim=3)
+    similarity = vmap(pairwise_cosine_similarity)(
+        jacobian1, jacobian2
+    )
     return similarity                          # size B x M x N
