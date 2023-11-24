@@ -63,36 +63,10 @@ class CRectangleConvNet(FixedSequential):
         self.append(SobelLayer())
         self.append(torch.nn.ReLU())
         self.append(SumChannels(12, 2))
-        self.append(self.distance_layer())
+        self.append(DistanceLayer(kernel_size=13))
         self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
         self.append(torch.nn.Flatten())
         self.append(self.decision_layer())
-    
-    def distance_layer(self) -> torch.nn.Conv2d:
-        # This layer calculates the distance from
-        #  (1) vertical borders on the left
-        #  (2) vertical borders on the right
-        #  (3) horizontal borders above
-        #  (4) horizontal borders below
-        # First, we generate masks for the distance calculation 
-        distances = torch.arange(-6, 7.).unsqueeze(0).repeat(13, 1)
-        distance_to_right = distances.relu()
-        distance_to_left = (-distances).relu()
-        distance_to_bottom = distances.T.relu()
-        distance_to_top = (-distances).T.relu()
-        # Then we use these masks to set the weights
-        distance_layer = torch.nn.Conv2d(2, 4, 13, padding=7)
-        distance_layer.weight.data.zero_()
-        distance_layer.bias.data.zero_()
-        # first channel computes distance to vertical line to the left
-        distance_layer.weight.data[0, 0] = distance_to_left.sqrt()
-        # second channel computes distance to vertical line to the right
-        distance_layer.weight.data[1, 0] = distance_to_right.sqrt()
-        # third channel computes distance to horizontal line above
-        distance_layer.weight.data[2, 1] = distance_to_top.sqrt()
-        # fourth channel computes distance to horizontal line below
-        distance_layer.weight.data[3, 1] = distance_to_bottom.sqrt()
-        return distance_layer
     
     def decision_layer(self) -> torch.nn.Linear:
         # It checks whether the distance to left-right vertical borders
@@ -108,6 +82,16 @@ class SRectangleConvNet(FixedSequential):
     """ConvNet that classifies striped rectangles by shape."""
     def __init__(self):
         super().__init__()
+        self.append(LaplaceLayer())
+        self.append(Heaviside())
+        self.append(SumChannels(in_channels=2, groups=1))
+        self.append(SobelLayer(in_channels=1))
+        self.append(torch.nn.ReLU())
+        self.append(SumChannels(4, 2))
+        self.append(DistanceLayer(13))
+        self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
+        self.append(SumChannels(in_channels=4, groups=2))
+        self.append(torch.nn.Flatten())
     
 class TextureConvNet(FixedSequential):
     """Convolutional network that classifies input images based on
@@ -241,3 +225,29 @@ class SumChannels(torch.nn.Conv2d):
                 start = i * channels_per_group
                 stop = start + channels_per_group
                 self.weight.data[i, start:stop, :] = 1.0
+
+class DistanceLayer(torch.nn.Conv2d):
+    def __init__(self, kernel_size: int = 13):
+        super().__init__(
+            in_channels = 2,
+            out_channels = 4,
+            kernel_size = kernel_size,
+            padding = kernel_size // 2
+        )
+        # generate masks for the distance calculation 
+        self.weight.data.zero_()
+        self.bias.data.zero_()
+        distances = self.distance_masks(kernel_size)
+        self.weight.data[0, 0] = distances[0].sqrt()
+        self.weight.data[1, 0] = distances[1].sqrt()
+        self.weight.data[2, 1] = distances[2].sqrt()
+        self.weight.data[3, 1] = distances[3].sqrt()
+
+    def distance_masks(self, kernel_size):
+        distances = torch.arange(-(kernel_size//2), kernel_size // 2 + 1.0)
+        distances = distances.unsqueeze(0).repeat(kernel_size, 1)
+        distance_to_right = distances.relu()
+        distance_to_left = (-distances).relu()
+        distance_to_bottom = distances.T.relu()
+        distance_to_top = (-distances).T.relu()
+        return distance_to_right, distance_to_left, distance_to_bottom, distance_to_top
