@@ -104,10 +104,36 @@ class TextureConvNet(FixedSequential):
         self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
         self.append(torch.nn.Flatten())
 
-class CLTConvNet(FixedSequential):
-    """ConvNet that classifies colorful L and T shapes by shape."""
+class LTConvNet(FixedSequential):
+    """ConvNet that classifies letters L and T by shape.
+    Works for color and stripe version."""
     def __init__(self):
         super().__init__()
+        self.append(LaplaceLayer())
+        self.append(Heaviside())
+        self.append(SumChannels(in_channels=2, groups=1))
+        self.append(SobelLayer(in_channels=1))
+        self.append(torch.nn.ReLU())
+        self.append(SumChannels(4, 1))
+        self.append(EndDetector())
+        self.append(Heaviside())
+        self.append(torch.nn.AdaptiveMaxPool2d(1))
+        self.append(SumChannels(4, 1))
+        self.append(self.make_decision_layer())
+        self.append(torch.nn.Flatten())
+
+    def make_decision_layer(self):
+        layer = torch.nn.Conv2d(
+            in_channels=1,
+            out_channels=2,
+            kernel_size=1
+        )
+        with torch.no_grad():
+            layer.weight[0, :] = -1.0
+            layer.weight[1, :] = 1.0
+            layer.bias[0] = 2.5
+            layer.bias[1] = -2.5
+        return layer
 
 #################
 # Helper layers #
@@ -251,3 +277,33 @@ class DistanceLayer(torch.nn.Conv2d):
         distance_to_bottom = distances.T.relu()
         distance_to_top = (-distances).T.relu()
         return distance_to_right, distance_to_left, distance_to_bottom, distance_to_top
+
+class EndDetector(torch.nn.Conv2d):
+    """Convolution layer that detects line ends in 4 possible orientations."""
+    def __init__(self):
+        super().__init__(
+            in_channels=1,
+            out_channels=4,
+            kernel_size=5,
+            bias=False,
+            padding=2
+        )
+        top_end, left_end, bottom_end, right_end = self.create_end_masks()
+        self.weight.data[0, :] = top_end
+        self.weight.data[1, :] = bottom_end
+        self.weight.data[2, :] = right_end
+        self.weight.data[3, :] = left_end
+
+    def create_end_masks(self):
+        end_mask = torch.tensor([
+            [ 0,  0,  0,  0,  0.],
+            [ 0, -1, -1, -1,  0],
+            [-1,  0,  1,  0, -1],
+            [ 0,  0,  0,  0,  0],
+            [ 0,  0,  0,  0,  0]
+        ])
+        top_end = end_mask
+        left_end = end_mask.T
+        bottom_end = end_mask.flipud()
+        right_end = bottom_end.T
+        return top_end, left_end, bottom_end, right_end
