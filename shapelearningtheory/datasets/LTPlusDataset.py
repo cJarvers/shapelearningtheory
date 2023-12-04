@@ -214,8 +214,7 @@ class LTDataModule(LightningDataModule):
             patternT: Type[Color] | Type[Texture],
             background_pattern: Type[Color] | Type[Texture],
             stride: int = 1,
-            batch_size: int = 32, num_workers: int = 4,
-            validation_ration: float = 0.0):
+            batch_size: int = 32, num_workers: int = 4):
         super().__init__()
         self.imgheight = imgheight
         self.imgwidth = imgwidth
@@ -228,19 +227,22 @@ class LTDataModule(LightningDataModule):
         self.stride = stride
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.validation_ratio = validation_ration
 
     def prepare_data(self) -> None:
-        self.dataset = LTDataset(
+        self.train = LTDataset(
             self.imgheight, self.imgwidth,
             self.heights, self.widths, self.strengths,
             self.patternL, self.patternT,
             self.background_pattern,
             self.stride
         )
-        p_train = 1.0 - self.validation_ratio
-        p_val = self.validation_ratio
-        self.train, self.val = random_split(self.dataset, [p_train, p_val])
+        self.val = LTDataset(
+            self.imgheight, self.imgwidth,
+            self.heights, self.widths, self.strengths,
+            self.patternL, self.patternT,
+            self.background_pattern,
+            self.stride
+        )
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.batch_size, shuffle=True,
@@ -251,5 +253,5 @@ class LTDataModule(LightningDataModule):
             num_workers=self.num_workers)
     
     def test_dataloader(self) -> Any:
-        return DataLoader(self.dataset, self.batch_size, shuffle=False,
+        return DataLoader(self.val, self.batch_size, shuffle=False,
             num_workers=self.num_workers)

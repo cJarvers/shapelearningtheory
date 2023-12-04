@@ -104,34 +104,40 @@ class RectangleDataset(Dataset):
 
 
 class RectangleDataModule(LightningDataModule):
-    def __init__(self, imgheight:int, imgwidth: int, lengths: List[int],
+    def __init__(self, imgheight: int, imgwidth: int, lengths: List[int],
             widths: List[int], batch_size: int = 32, num_workers: int = 4,
             pattern1: Type[Color] | Type[Texture] = RandomRed,
             pattern2: Type[Color] | Type[Texture] = RandomBlue,
             background_pattern: Type[Color] | Type[Texture] = Grey,
             stride: int = 1,
-            validation_ratio: float = 0.0,
             oversampling_factor: int = 1):
         super().__init__()
+        self.imgheight = imgheight
+        self.imgwidth = imgwidth
         self.lengths = lengths
         self.widths = widths
         self.pattern1 = pattern1
         self.pattern2 = pattern2
         self.background_pattern = background_pattern
         self.stride = stride
+        self.oversampling_factor = oversampling_factor
         self.save_hyperparameters(ignore=["lengths", "widths"])
 
     def prepare_data(self) -> None:
-        self.dataset = RectangleDataset(
-            self.hparams.imgheight, self.hparams.imgwidth, self.lengths,
+        self.train = RectangleDataset(
+            self.imgheight, self.imgwidth, self.lengths,
             self.widths, self.pattern1, self.pattern2,
             background_pattern=self.background_pattern,
             stride = self.stride,
-            oversampling_factor=self.hparams.oversampling_factor
+            oversampling_factor=self.oversampling_factor
         )
-        p_train = 1.0 - self.hparams.validation_ratio
-        p_val = self.hparams.validation_ratio
-        self.train, self.val = random_split(self.dataset, [p_train, p_val])
+        self.val = RectangleDataset(
+            self.imgheight, self.imgwidth, self.lengths,
+            self.widths, self.pattern1, self.pattern2,
+            background_pattern=self.background_pattern,
+            stride = self.stride,
+            oversampling_factor=self.oversampling_factor
+        )
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.hparams.batch_size, shuffle=True,
@@ -142,5 +148,5 @@ class RectangleDataModule(LightningDataModule):
             num_workers=self.hparams.num_workers)
     
     def test_dataloader(self) -> Any:
-        return DataLoader(self.dataset, self.hparams.batch_size, shuffle=False,
+        return DataLoader(self.val, self.hparams.batch_size, shuffle=False,
             num_workers=self.hparams.num_workers)

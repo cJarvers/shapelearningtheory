@@ -77,7 +77,6 @@ class LineDataModule(LightningDataModule):
             horizontalcolor: Type[Color] = RandomRed,
             verticalcolor: Type[Color] = RandomBlue,
             backgroundcolor: Type[Color] = Grey,
-            validation_ratio: float = 0.0,
             oversampling_factor: int = 1):
         super().__init__()
         self.lengths = lengths
@@ -87,14 +86,16 @@ class LineDataModule(LightningDataModule):
         self.save_hyperparameters(ignore=["lengths"])
 
     def prepare_data(self) -> None:
-        self.dataset = LineDataset(self.hparams.height, self.hparams.width,
+        self.train = LineDataset(self.hparams.height, self.hparams.width,
             self.lengths, horizontalcolor=self.horizontalcolor,
             verticalcolor=self.verticalcolor,
             backgroundcolor=self.backgroundcolor,
             oversampling_factor=self.hparams.oversampling_factor)
-        p_train = 1.0 - self.hparams.validation_ratio
-        p_val = self.hparams.validation_ratio
-        self.train, self.val = random_split(self.dataset, [p_train, p_val])
+        self.val = LineDataset(self.hparams.height, self.hparams.width,
+            self.lengths, horizontalcolor=self.horizontalcolor,
+            verticalcolor=self.verticalcolor,
+            backgroundcolor=self.backgroundcolor,
+            oversampling_factor=self.hparams.oversampling_factor)
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.hparams.batch_size, shuffle=True,
@@ -105,5 +106,5 @@ class LineDataModule(LightningDataModule):
             num_workers=self.hparams.num_workers)
     
     def test_dataloader(self) -> Any:
-        return DataLoader(self.dataset, self.hparams.batch_size, shuffle=False,
+        return DataLoader(self.val, self.hparams.batch_size, shuffle=False,
             num_workers=self.hparams.num_workers)

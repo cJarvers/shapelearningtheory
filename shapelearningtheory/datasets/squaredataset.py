@@ -89,8 +89,7 @@ class SquaresDataModule(LightningDataModule):
             pattern2: Type[Color] | Type[Texture] = RandomBlue,
             background_pattern: Type[Color] | Type[Texture] = Grey,
             oversampling_factor: int = 1,
-            stride: int = 1,
-            validation_ratio: float = 0.0):
+            stride: int = 1):
         super().__init__()
         self.lengths = lengths
         self.pattern1 = pattern1
@@ -100,15 +99,18 @@ class SquaresDataModule(LightningDataModule):
         self.save_hyperparameters(ignore=["lengths"])
 
     def prepare_data(self) -> None:
-        self.dataset = SquareDataset(self.hparams.height, self.hparams.width,
+        self.train = SquareDataset(self.hparams.height, self.hparams.width,
             self.lengths, pattern1=self.pattern1,
             pattern2=self.pattern2,
             background_pattern=self.background_pattern,
             stride=self.stride,
             oversampling_factor=self.hparams.oversampling_factor)
-        p_train = 1.0 - self.hparams.validation_ratio
-        p_val = self.hparams.validation_ratio
-        self.train, self.val = random_split(self.dataset, [p_train, p_val])
+        self.val = SquareDataset(self.hparams.height, self.hparams.width,
+            self.lengths, pattern1=self.pattern1,
+            pattern2=self.pattern2,
+            background_pattern=self.background_pattern,
+            stride=self.stride,
+            oversampling_factor=self.hparams.oversampling_factor)
 
     def train_dataloader(self) -> Any:
         return DataLoader(self.train, self.hparams.batch_size, shuffle=True,
@@ -119,5 +121,5 @@ class SquaresDataModule(LightningDataModule):
             num_workers=self.hparams.num_workers)
     
     def test_dataloader(self) -> Any:
-        return DataLoader(self.dataset, self.hparams.batch_size, shuffle=False,
+        return DataLoader(self.val, self.hparams.batch_size, shuffle=False,
             num_workers=self.hparams.num_workers)
