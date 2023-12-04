@@ -83,10 +83,10 @@ class SRectangleConvNet(FixedSequential):
     def __init__(self):
         super().__init__()
         self.append(LaplaceLayer())
-        self.append(Heaviside())
+        self.append(RootLU())
         self.append(SumChannels(in_channels=2, groups=1))
-        self.append(SobelLayer(in_channels=1))
-        self.append(torch.nn.ReLU())
+        self.append(SobelLayer(in_channels=1, bias_level=-0.3))
+        self.append(RootLU(coeff=0.5))
         self.append(SumChannels(4, 2))
         self.append(DistanceLayer(13))
         self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
@@ -110,13 +110,13 @@ class LTConvNet(FixedSequential):
     def __init__(self):
         super().__init__()
         self.append(LaplaceLayer())
-        self.append(Heaviside())
+        self.append(RootLU())
         self.append(SumChannels(in_channels=2, groups=1))
-        self.append(SobelLayer(in_channels=1))
-        self.append(torch.nn.ReLU())
+        self.append(SobelLayer(in_channels=1, bias_level=-0.3))
+        self.append(RootLU(coeff=0.5))
         self.append(SumChannels(4, 1))
-        self.append(EndDetector())
-        self.append(Heaviside())
+        self.append(EndDetector(inhibition_factor=1.5))
+        self.append(RootLU())
         self.append(torch.nn.AdaptiveMaxPool2d(1))
         self.append(SumChannels(4, 1))
         self.append(self.make_decision_layer())
@@ -140,7 +140,7 @@ class LTConvNet(FixedSequential):
 #################
 class LaplaceLayer(torch.nn.Conv2d):
     """Convolution layer that performs Laplace filtering."""
-    def __init__(self, in_channels=3):
+    def __init__(self, in_channels=3, bias_level=-0.01):
         super().__init__(
             in_channels = in_channels,
             out_channels = 2,
@@ -149,8 +149,9 @@ class LaplaceLayer(torch.nn.Conv2d):
             padding = "same",
             padding_mode = "replicate"
         )
+        self.bias_level = bias_level
         with torch.no_grad():
-            self.bias.data[:] = -0.01
+            self.bias.data[:] = self.bias_level
             laplace_kernel = torch.tensor(
                 [[0, 1, 0],
                  [1, -4, 1],
@@ -167,6 +168,15 @@ class Heaviside(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x.heaviside(values=torch.zeros_like(x))
+    
+class RootLU(torch.nn.Module):
+    """ReLU combined with root function (to squash output range)."""
+    def __init__(self, coeff=0.1):
+        super().__init__()
+        self.coeff = coeff
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x.relu().pow(self.coeff)
 
 class GaborLayer(torch.nn.Conv2d):
     """Convolution layer that is initialized with a Gabor filter bank."""
@@ -213,7 +223,7 @@ class GaborLayer(torch.nn.Conv2d):
 
 class SobelLayer(torch.nn.Conv2d):
     """Convolution layer that performs Sobel filtering in x and y direction."""
-    def __init__(self, in_channels=3):
+    def __init__(self, in_channels=3, bias_level=-0.1):
         super().__init__(
             in_channels = in_channels,
             out_channels = 4 * in_channels,
@@ -222,6 +232,7 @@ class SobelLayer(torch.nn.Conv2d):
             padding="same",
             padding_mode="replicate"
         )
+        self.bias_level = bias_level
         sobel_x = torch.tensor([[-0.25, 0., 0.25], [-0.5, 0., 0.5], [-0.25, 0., 0.25]])
         sobel_y = sobel_x.T
         with torch.no_grad():
@@ -232,7 +243,7 @@ class SobelLayer(torch.nn.Conv2d):
                 n = in_channels
                 self.weight.data[2*n+2*i, i, :, :] = sobel_y
                 self.weight.data[2*n+2*i+1, i, :, :] = -sobel_y
-            self.bias.data[:] = -0.1
+            self.bias.data[:] = bias_level
 
 class SumChannels(torch.nn.Conv2d):
     """1x1 convolution that sums over channels in equal groups."""
@@ -280,14 +291,17 @@ class DistanceLayer(torch.nn.Conv2d):
 
 class EndDetector(torch.nn.Conv2d):
     """Convolution layer that detects line ends in 4 possible orientations."""
-    def __init__(self):
+    def __init__(self, inhibition_factor=1.0, bias_level=0.0):
         super().__init__(
             in_channels=1,
             out_channels=4,
             kernel_size=5,
-            bias=False,
+            bias=True,
             padding=2
         )
+        self.inhibition_factor = inhibition_factor
+        self.bias_level = bias_level
+        self.bias.data[:] = bias_level
         top_end, left_end, bottom_end, right_end = self.create_end_masks()
         self.weight.data[0, :] = top_end
         self.weight.data[1, :] = bottom_end
@@ -295,13 +309,16 @@ class EndDetector(torch.nn.Conv2d):
         self.weight.data[3, :] = left_end
 
     def create_end_masks(self):
-        end_mask = torch.tensor([
-            [ 0,  0,  0,  0,  0.],
-            [ 0, -1, -1, -1,  0],
-            [-1,  0,  1,  0, -1],
+        center_mask = torch.zeros(5,5)
+        center_mask[2, 2] = 1.0 
+        inhibition_mask = torch.tensor([
+            [-1, -1, -1, -1, -1.],
+            [-1, -1, -1, -1, -1],
+            [-1,  0,  0,  0, -1],
             [ 0,  0,  0,  0,  0],
             [ 0,  0,  0,  0,  0]
-        ])
+        ]) * self.inhibition_factor
+        end_mask = center_mask + inhibition_mask
         top_end = end_mask
         left_end = end_mask.T
         bottom_end = end_mask.flipud()
