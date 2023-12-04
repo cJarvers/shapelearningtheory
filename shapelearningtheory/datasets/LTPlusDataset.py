@@ -147,7 +147,8 @@ class LTDataset(Dataset):
             widths: List[int], strengths: List[int],
             patternL: Type[Color] | Type[Texture],
             patternT: Type[Color] | Type[Texture],
-            background_pattern: Type[Color] | Type[Texture] = Grey):
+            background_pattern: Type[Color] | Type[Texture] = Grey,
+            stride: int = 1):
         super().__init__()
         self.imgheight = imgheight
         self.imgwidth = imgwidth
@@ -157,6 +158,7 @@ class LTDataset(Dataset):
         self.patternL = patternL
         self.patternT = patternT
         self.background_pattern = background_pattern
+        self.stride = stride
         self.ls, self.ts = self._generate_stimuli()
 
     def _generate_stimuli(self):
@@ -166,8 +168,8 @@ class LTDataset(Dataset):
         for h in self.heights:
             for w in self.widths:
                 for s in self.strengths:
-                    for x in range(pad, self.imgwidth - w - pad):
-                        for y in range(pad, self.imgheight - h - pad):
+                    for x in range(pad, self.imgwidth - w - pad, self.stride):
+                        for y in range(pad, self.imgheight - h - pad, self.stride):
                             for corner in ["topright", "topleft", "bottomright", "bottomleft"]:
                                 ls.append(Stimulus(
                                     shape=LShape(
@@ -211,6 +213,7 @@ class LTDataModule(LightningDataModule):
             patternL: Type[Color] | Type[Texture],
             patternT: Type[Color] | Type[Texture],
             background_pattern: Type[Color] | Type[Texture],
+            stride: int = 1,
             batch_size: int = 32, num_workers: int = 4,
             validation_ration: float = 0.0):
         super().__init__()
@@ -222,6 +225,7 @@ class LTDataModule(LightningDataModule):
         self.patternL = patternL
         self.patternT = patternT
         self.background_pattern = background_pattern
+        self.stride = stride
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.validation_ratio = validation_ration
@@ -231,7 +235,8 @@ class LTDataModule(LightningDataModule):
             self.imgheight, self.imgwidth,
             self.heights, self.widths, self.strengths,
             self.patternL, self.patternT,
-            self.background_pattern
+            self.background_pattern,
+            self.stride
         )
         p_train = 1.0 - self.validation_ratio
         p_val = self.validation_ratio
