@@ -34,6 +34,13 @@ class ColorConvNet(FixedSequential):
         self.append(torch.nn.Flatten())
         self.append(self.make_colorclass_layer())
 
+    def get_layers_of_interest(self):
+        return {
+            "R-B diff": 1,
+            "pooling": 3,
+            "color class": 5
+        }
+
     def make_rbdiff_layer(self) -> torch.nn.Module:
         "Create layer that computes difference between red and blue channel."
         layer = torch.nn.Conv2d(3, 2, 1)
@@ -67,6 +74,14 @@ class CRectangleConvNet(FixedSequential):
         self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
         self.append(torch.nn.Flatten())
         self.append(self.decision_layer())
+
+    def get_layers_of_interest(self):
+        return {
+            "Sobel": 1,
+            "borders": 3,
+            "distance": 4,
+            "shape class": 7
+        }
     
     def decision_layer(self) -> torch.nn.Linear:
         # It checks whether the distance to left-right vertical borders
@@ -92,6 +107,16 @@ class SRectangleConvNet(FixedSequential):
         self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
         self.append(SumChannels(in_channels=4, groups=2))
         self.append(torch.nn.Flatten())
+
+    def get_layers_of_interest(self):
+        return {
+            "Laplace": 1,
+            "Sobel": 4,
+            "borders": 6,
+            "distance": 7,
+            "decision": 10
+        }
+
     
 class TextureConvNet(FixedSequential):
     """Convolutional network that classifies input images based on
@@ -103,6 +128,13 @@ class TextureConvNet(FixedSequential):
         self.append(SumChannels(24, 2))
         self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
         self.append(torch.nn.Flatten())
+
+    def get_layers_of_interest(self):
+        return {
+            "Gabor": 1,
+            "orientation": 3,
+            "texture class": 5
+        }
 
 class LTConvNet(FixedSequential):
     """ConvNet that classifies letters L and T by shape.
@@ -121,6 +153,15 @@ class LTConvNet(FixedSequential):
         self.append(SumChannels(4, 1))
         self.append(self.make_decision_layer())
         self.append(torch.nn.Flatten())
+
+    def get_layers_of_interest(self):
+        return {
+            "Laplace": 1,
+            "Sobel": 4,
+            "borders": 6,
+            "line ends": 7,
+            "shape class": 11
+        }
 
     def make_decision_layer(self):
         layer = torch.nn.Conv2d(
