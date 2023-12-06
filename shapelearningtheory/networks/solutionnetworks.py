@@ -36,7 +36,7 @@ class ColorConvNet(FixedSequential):
 
     def get_layers_of_interest(self):
         return {
-            "R-B diff": 1,
+            "R-B diff": 2,
             "pooling": 3,
             "color class": 5
         }
@@ -77,7 +77,7 @@ class CRectangleConvNet(FixedSequential):
 
     def get_layers_of_interest(self):
         return {
-            "Sobel": 1,
+            "Sobel": 2,
             "borders": 3,
             "distance": 4,
             "shape class": 7
@@ -110,8 +110,8 @@ class SRectangleConvNet(FixedSequential):
 
     def get_layers_of_interest(self):
         return {
-            "Laplace": 1,
-            "Sobel": 4,
+            "Laplace": 2,
+            "Sobel": 5,
             "borders": 6,
             "distance": 7,
             "decision": 10
@@ -131,7 +131,7 @@ class TextureConvNet(FixedSequential):
 
     def get_layers_of_interest(self):
         return {
-            "Gabor": 1,
+            "Gabor": 2,
             "orientation": 3,
             "texture class": 5
         }
@@ -156,10 +156,10 @@ class LTConvNet(FixedSequential):
 
     def get_layers_of_interest(self):
         return {
-            "Laplace": 1,
-            "Sobel": 4,
+            "Laplace": 2,
+            "Sobel": 3,
             "borders": 6,
-            "line ends": 7,
+            "line ends": 8,
             "shape class": 11
         }
 
