@@ -14,13 +14,13 @@ def plot_column_wise(table: Table, plotfun, fig_params={}, plot_params={}):
 
 def plot_table(table: Table, plotfun, fig_params={}, plot_params={}):
     cols, rows = table.get_size()
-    fig, ax = plt.subplots(rows, cols, **fig_params)
-    for i, row in enumerate(table.row_names):
-        for j, col in enumerate(table.col_names):
+    fig, ax = plt.subplots(cols, rows, **fig_params)
+    for i, col in enumerate(table.col_names):
+        for j, row in enumerate(table.row_names):
             plotfun(table[col, row], ax[i, j], **plot_params)
             if j == 0:
-                ax[i, j].set_ylabel(row)
+                ax[i, j].set_ylabel(col)
             if i == 0:
-                ax[i, j].set_title(col)
+                ax[i, j].set_title(row)
     return fig
 

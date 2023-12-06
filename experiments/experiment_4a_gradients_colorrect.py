@@ -31,8 +31,8 @@ eval_data = RectangleDataModule(
     batch_size=32)
 eval_data.prepare_data()
 eval_data_loader = eval_data.test_dataloader()
-imgheight = eval_data.dataset.imgheight
-imgwidth = eval_data.dataset.imgwidth
+imgheight = eval_data.val.imgheight
+imgwidth = eval_data.val.imgwidth
 channels = 3
 classes = 2
 
