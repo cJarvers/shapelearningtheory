@@ -4,6 +4,8 @@ import numpy as np
 import torch
 from torch.func import vmap, jacrev
 from torchmetrics.functional import pairwise_cosine_similarity
+# local imports
+from .helpers import apply_to_layers
 
 def compute_jacobian(net, images: torch.Tensor, flatten: bool=True, **kwargs):
     """Compute the jacobian of `net` on `images`.
@@ -59,6 +61,16 @@ def get_jacobians(net, dataset, max_batches=None, device="cuda", normalize=False
         )
     return np.concatenate(jacobian_list, axis=0)
 
+def get_jacobians_per_layer(net, dataset, neurons_per_layer=None, **kwargs):
+    if neurons_per_layer:
+        f = lambda net: select_random_subset(
+                get_jacobians(net, dataset, **kwargs),
+                neurons_per_layer
+            )
+    else:
+        f = lambda net: get_jacobians(net, dataset, **kwargs)
+    net_jacobians = apply_to_layers(f, net)
+    return net_jacobians
 
 def select_random_subset(jacobian: np.array, num_neurons: int):
     """From a given jacobian of shape B x N x D, with N neurons,
@@ -89,9 +101,9 @@ def project_gradients_to_feature(grad: torch.Tensor, feature_grad: torch.Tensor
 def compare_consistencies(grads: torch.Tensor, feature_grads: torch.Tensor,
                           chunk_size: int=1) -> torch.Tensor:
     consistency_fun = vmap(pairwise_cosine_similarity, in_dims=1, chunk_size=chunk_size)
-    grad_consistency = consistency_fun(grads)
+    grad_consistency = consistency_fun(grads).nan_to_num()
     feature_projection = vmap(project_gradients_to_feature, chunk_size=chunk_size)(
         grads, feature_grads
     )
-    feature_consistency = consistency_fun(feature_projection)
+    feature_consistency = consistency_fun(feature_projection).nan_to_num()
     return grad_consistency * feature_consistency
