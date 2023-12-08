@@ -6,7 +6,7 @@ sys.path.append("..")
 from shapelearningtheory.datasets import make_rectangles_color_large, make_rectangles_coloronly_large, \
     make_rectangles_shapeonly_large, make_rectangles_wrong_color_large
 from shapelearningtheory.networks import make_resnet50, make_vit_b_16
-from helpers import print_table, train_and_validate, unpack_results
+from helpers import print_table, train_and_validate, unpack_results, get_standard_networks
 
 # hyper-parameters for training
 epochs = 100
@@ -27,16 +27,11 @@ test_sets = {
 
 # hyperparameters from dataset
 traindata.prepare_data()
-imgheight = traindata.train.imgheight
-imgwidth = traindata.train.imgwidth
-channels = 3
+imagesize = traindata.train.imgheight
 classes = 2
 
 # define models
-models = {
-    "resnet": lambda: make_resnet50(classes),
-    "vit_b_16": lambda: make_vit_b_16(imgheight, classes)
-}
+models = get_standard_networks(classes, imagesize)
 
 # train and test
 test_results = {}

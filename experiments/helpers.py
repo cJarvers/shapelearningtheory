@@ -2,6 +2,26 @@ import pandas as pd
 import pytorch_lightning as pl
 from statistics import mean
 from typing import Any, Callable, List
+# local imports
+from shapelearningtheory.networks import make_resnet50, make_vit_b_16, \
+    make_mlp_small, make_convnet_small, make_rconvnet_small, \
+    make_softmaxconv_small, make_ViT_small, make_AE_small
+
+def get_basic_networks(classes, channels, imagesize):
+    return {
+        "mlp": lambda: make_mlp_small(num_inputs=imagesize * imagesize * channels, num_outputs=classes),
+        "conv": lambda: make_convnet_small(channels=channels, classes=classes),
+        "rconv": lambda: make_rconvnet_small(channels=channels, classes=classes),
+        #"softmaxconv": lambda: make_softmaxconv_small(channels=channels, classes=classes),
+        "ViT": lambda: make_ViT_small(imgsize=imagesize, classes=classes),
+        #"autoencoder": lambda: make_AE_small(num_inputs=imagesize * imagesize * channels, classes=classes)
+    }
+
+def get_standard_networks(classes, imagesize):
+    return {
+        "resnet": lambda: make_resnet50(classes),
+        "vit_b_16": lambda: make_vit_b_16(imagesize, classes)
+    }
 
 def print_table(test_names: List[str], results: dict, cellwidth: int=15):
     """Print results of test runs as a table on the command line."""
