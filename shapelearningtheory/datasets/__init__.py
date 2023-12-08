@@ -210,12 +210,34 @@ def make_LT_color(batchsize: int = 128):
         batch_size=batchsize)
     return dataset
 
+def make_LT_color_large(batchsize: int = 128):
+    """Standard parametrization for LT dataset (large, color)."""
+    dataset = LTDataModule(
+        imgheight=224, imgwidth=224,
+        heights=[50, 99, 100, 101, 150], widths=[50, 99, 100, 101, 150],
+        strengths=[5, 7, 10, 12, 15],
+        patternL=RedXORBlue, patternT=NotRedXORBlue,
+        background_pattern=RandomGrey,
+        batch_size=batchsize)
+    return dataset
+
 def make_LT_texture(batchsize: int = 128):
     """Standard parametrization for LT dataset (small, texture)."""
     dataset = LTDataModule(
         imgheight=18, imgwidth=18,
         heights=range(7, 13), widths=range(7, 13),
         strengths=range(1, 3),
+        patternL=HorizontalGrating, patternT=VerticalGrating,
+        background_pattern=RandomGrey,
+        batch_size=batchsize)
+    return dataset
+
+def make_LT_texture_large(batchsize: int = 128):
+    """Standard parametrization for LT dataset (large, texture)."""
+    dataset = LTDataModule(
+        imgheight=224, imgwidth=224,
+        heights=[50, 99, 100, 101, 150], widths=[50, 99, 100, 101, 150],
+        strengths=[5, 7, 10, 12, 15],
         patternL=HorizontalGrating, patternT=VerticalGrating,
         background_pattern=RandomGrey,
         batch_size=batchsize)
@@ -229,6 +251,17 @@ def make_LT_shapeonly(batchsize: int = 128):
         strengths=range(1, 3),
         patternL=Grey, patternT=Grey,
         background_pattern=RandomGrey,
+        batch_size=batchsize)
+    return dataset
+
+def make_LT_shapeonly_large(batchsize: int = 128):
+    """Standard parametrization for LT dataset (large, color)."""
+    dataset = LTDataModule(
+        imgheight=224, imgwidth=224,
+        heights=[50, 99, 100, 101, 150], widths=[50, 99, 100, 101, 150],
+        strengths=[5, 7, 10, 12, 15],
+        patternL=Grey, patternT=Grey,
+        background_pattern=Grey,
         batch_size=batchsize)
     return dataset
 
