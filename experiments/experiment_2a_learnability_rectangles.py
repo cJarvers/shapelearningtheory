@@ -24,8 +24,8 @@ test_sets = {
 
 # hyperparameters from dataset
 traindata.prepare_data()
-imgheight = traindata.dataset.imgheight
-imgwidth = traindata.dataset.imgwidth
+imgheight = traindata.train.imgheight
+imgwidth = traindata.train.imgwidth
 channels = 3
 classes = 2
 
