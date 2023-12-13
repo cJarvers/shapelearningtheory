@@ -4,6 +4,7 @@ from statistics import mean
 from typing import Any, Callable, List
 # local imports
 from shapelearningtheory.networks import make_resnet50, make_vit_b_16, \
+    make_vgg_19, \
     make_mlp_small, make_convnet_small, make_rconvnet_small, \
     make_softmaxconv_small, make_ViT_small, make_AE_small
 
@@ -19,6 +20,7 @@ def get_basic_networks(classes, channels, imagesize):
 
 def get_standard_networks(classes, imagesize):
     return {
+        "VGG19": lambda: make_vgg_19(classes),
         "resnet": lambda: make_resnet50(classes),
         "vit_b_16": lambda: make_vit_b_16(imagesize, classes)
     }

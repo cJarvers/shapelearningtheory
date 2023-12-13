@@ -1,4 +1,5 @@
 from torchvision.models.resnet import resnet50
+from torchvision.models.vgg import vgg19_bn
 from .autoencoder import AutoEncoder
 from .convnet import SimpleConvNet, RecurrentConvNet
 from .linearnetworks import ShallowLinear, DeepLinear
@@ -113,3 +114,11 @@ def make_vit_b_16(imgsize, classes):
         metric=Accuracy("multiclass", num_classes=2)
     )
     return vit
+
+def make_vgg_19(classes):
+    vgg = TrainingWrapper(
+        net = vgg19_bn(num_classes=classes),
+        loss_fun=torch.nn.functional.cross_entropy,
+        metric=Accuracy("multiclass", num_classes=classes)
+    )
+    return vgg
