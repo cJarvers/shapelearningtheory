@@ -21,16 +21,11 @@ class FixedSequential(torch.nn.Sequential):
 ############
 class ColorConvNet(FixedSequential):
     """Convolutional network that classifies RedXORBlue vs. NotRedXORBlue by construction."""
-    def __init__(self, imageheight: int, imagewidth: int,
-                 min_pixels: int = 35, max_pixels: int = 117):
+    def __init__(self):
         super().__init__()
-        self.imageheight = imageheight
-        self.imagewidth = imagewidth
-        self.min_pixels = min_pixels
-        self.max_pixels = max_pixels
         self.append(self.make_rbdiff_layer())
         self.append(torch.nn.ReLU())
-        self.append(torch.nn.AdaptiveAvgPool2d(output_size=1))
+        self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
         self.append(torch.nn.Flatten())
         self.append(self.make_colorclass_layer())
 
@@ -53,10 +48,8 @@ class ColorConvNet(FixedSequential):
         """Create layer that classifies as RedXORBlue or NotRedXORBlue,
         depending on difference between red and blue channel (from previous layer)."""
         layer = torch.nn.Linear(2, 2)
-        max_for_NotRedXORBlue = self.max_pixels * 0.1 / (self.imageheight * self.imagewidth)
-        min_for_RedXORBlue = self.min_pixels * 0.8 / (self.imageheight * self.imagewidth)
-        if max_for_NotRedXORBlue > min_for_RedXORBlue:
-            raise ValueError("Cannot correctly set threshold.")
+        max_for_NotRedXORBlue = 0.1
+        min_for_RedXORBlue = 0.8
         threshold = (min_for_RedXORBlue + max_for_NotRedXORBlue) / 2
         layer.weight.data = torch.tensor([[1.0, 1.0], [-1.0, -1.0]])
         layer.bias.data = torch.tensor([-threshold, threshold])

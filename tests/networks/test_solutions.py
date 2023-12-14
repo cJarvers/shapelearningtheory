@@ -29,9 +29,7 @@ class TestColorConvnet(DataSetTest):
         data = make_rectangles_wrong_color()
         data.prepare_data()
         self.evaluate_network(
-            ColorConvNet(
-                data.dataset.imgheight,
-                data.dataset.imgwidth),
+            ColorConvNet(),
             data,
             expected_accuracy=0.0
         )
@@ -40,10 +38,7 @@ class TestColorConvnet(DataSetTest):
         data = make_LT_wrong_color()
         data.prepare_data()
         self.evaluate_network(
-            ColorConvNet(
-                data.dataset.imgheight,
-                data.dataset.imgwidth,
-                min_pixels=13, max_pixels=69),
+            ColorConvNet(),
             data,
             expected_accuracy=0.0
         )
