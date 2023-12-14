@@ -214,7 +214,7 @@ class RootLU(torch.nn.Module):
 
 class GaborLayer(torch.nn.Conv2d):
     """Convolution layer that is initialized with a Gabor filter bank."""
-    def __init__(self, frequency=0.1, bandwidth=3):
+    def __init__(self, frequency=0.1, bandwidth=2):
         horizontal_gabor = gabor_kernel(
             frequency=frequency, theta=np.pi/2, bandwidth=bandwidth)
         vertical_gabor = gabor_kernel(
