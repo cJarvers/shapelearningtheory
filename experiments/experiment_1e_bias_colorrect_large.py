@@ -3,8 +3,7 @@ import seaborn as sns
 import sys
 # local imports
 sys.path.append("..")
-from shapelearningtheory.datasets import make_rectangles_color_large, make_rectangles_coloronly_large, \
-    make_rectangles_shapeonly_large, make_rectangles_wrong_color_large
+from shapelearningtheory.datasets import make_dataset
 from helpers import print_table, train_and_validate, unpack_results, get_standard_networks
 
 # hyper-parameters for training
@@ -14,15 +13,15 @@ batch_size = 4
 
 # get data:
 # training dataset
-traindata = make_rectangles_color_large(batchsize=batch_size)
+traindata = make_dataset("rectangles", "color", "large", "standard", batchsize=batch_size)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "validation": make_rectangles_color_large(batchsize=batch_size),
-    "pattern only": make_rectangles_coloronly_large(batchsize=batch_size),
-    "shape only": make_rectangles_shapeonly_large(batchsize=batch_size),
-    "conflict": make_rectangles_wrong_color_large(batchsize=batch_size)
+    "validation": make_dataset("rectangles", "color", "large", "standard", batchsize=batch_size),
+    "pattern only": make_dataset("rectangles", "color", "large", "patternonly", batchsize=batch_size),
+    "shape only": make_dataset("rectangles", "color", "large", "shapeonly", batchsize=batch_size),
+    "conflict": make_dataset("rectangles", "color", "large", "conflict", batchsize=batch_size)
 }
 
 # hyperparameters from dataset

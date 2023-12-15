@@ -3,24 +3,25 @@ import seaborn as sns
 import sys
 # local imports
 sys.path.append("..")
-from shapelearningtheory.datasets import make_LT_texture, make_LT_textureonly, \
-    make_LT_shapeonly, make_LT_wrong_texture
+from shapelearningtheory.datasets import make_dataset
 from helpers import print_table, train_and_validate, unpack_results, get_basic_networks
 
 # hyper-parameters for training
 epochs = 100
+repetitions = 5
+batch_size = 128
 
 # get data:
 # training dataset
-traindata = make_LT_texture()
+traindata = make_dataset("LvT", "stripes", "small", "standard", batchsize=batch_size)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "validation": make_LT_texture(),
-    "pattern only": make_LT_textureonly(),
-    "shape only": make_LT_shapeonly(),
-    "conflict": make_LT_wrong_texture()
+    "validation": make_dataset("LvT", "stripes", "small", "standard", batchsize=batch_size),
+    "pattern only": make_dataset("LvT", "stripes", "small", "patternonly", batchsize=batch_size),
+    "shape only": make_dataset("LvT", "stripes", "small", "shapeonly", batchsize=batch_size),
+    "conflict": make_dataset("LvT", "stripes", "small", "conflict", batchsize=batch_size)
 }
 
 # hyperparameters from dataset

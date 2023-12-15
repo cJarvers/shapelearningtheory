@@ -7,21 +7,21 @@ from shapelearningtheory.datasets import make_dataset
 from helpers import print_table, train_and_validate, unpack_results, get_standard_networks
 
 # hyper-parameters for training
-epochs = 30
-repetitions = 5
+epochs = 5
+repetitions = 2
 batch_size = 4
 
 # get data:
 # training dataset
-traindata = make_dataset("rectangles", "stripes", "large", "standard", batchsize=batch_size)
+traindata = make_dataset("LvT", "stripes", "large", "standard", batchsize=batch_size)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "validation": make_dataset("rectangles", "stripes", "large", "standard", batchsize=batch_size),
-    "pattern only": make_dataset("rectangles", "stripes", "large", "patternonly", batchsize=batch_size),
-    "shape only": make_dataset("rectangles", "stripes", "large", "shapeonly", batchsize=batch_size),
-    "conflict": make_dataset("rectangles", "stripes", "large", "conflict", batchsize=batch_size)
+    "validation": make_dataset("LvT", "stripes", "large", "standard", batchsize=batch_size),
+    "pattern only": make_dataset("LvT", "stripes", "large", "patternonly", batchsize=batch_size),
+    "shape only": make_dataset("LvT", "stripes", "large", "shapeonly", batchsize=batch_size),
+    "conflict": make_dataset("LvT", "stripes", "large", "conflict", batchsize=batch_size)
 }
 
 # hyperparameters from dataset
@@ -46,5 +46,5 @@ print_table(test_sets.keys(), test_results, cellwidth=15)
 df = unpack_results(test_results)
 fig, ax = plt.subplots()
 sns.barplot(df, x="dataset", y="metric", hue="model", ax=ax)
-fig.suptitle("Accuracy on striped rectangles large")
-plt.savefig("figures/exp1f_barplot.png")
+fig.suptitle("Accuracy on stripe LvT large")
+plt.savefig("figures/exp1h_barplot.png")
