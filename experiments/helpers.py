@@ -25,19 +25,20 @@ def get_standard_networks(classes, imagesize):
         "ViT_b_16": lambda: make_vit_b_16(imagesize, classes)
     }
 
-def print_table(test_names: List[str], results: dict, cellwidth: int=15):
+def format_table(test_names: List[str], results: dict, cellwidth: int=15):
     """Print results of test runs as a table on the command line."""
-    print("Test results:")
-    print("| " + "Network".ljust(cellwidth-1), end="|")
+    table = "Test results:\n"
+    table += "| " + "Network".ljust(cellwidth-1) + "|"
     for testname in test_names:
-        print(" " + testname.ljust(cellwidth-1), end="|")
-    print("\n" + ("|" + "-" * cellwidth) * (len(test_names)+1) + "|")
+        table += " " + testname.ljust(cellwidth-1) + "|"
+    table += "\n" + ("|" + "-" * cellwidth) * (len(test_names)+1) + "|"
     for model, model_results in results.items():
-        print("| " + model.ljust(cellwidth-1), end="")
+        table += "| " + model.ljust(cellwidth-1)
         for testname, result in model_results.items():
             r = round(mean(result["test_metric"]), ndigits=3)
-            print("|" + f"{r}".rjust(cellwidth-2), end="  ")
-        print("|")
+            table += "|" + f"{r}".rjust(cellwidth-2) + "  "
+        table += "|"
+    return table
 
 def train_and_validate(model_fun: Callable, train_data: Any,
         validation_sets: dict, repetitions: int = 5, epochs: int = 100):

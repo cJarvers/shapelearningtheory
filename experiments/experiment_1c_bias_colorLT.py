@@ -4,7 +4,7 @@ import sys
 # local imports
 sys.path.append("..")
 from shapelearningtheory.datasets import make_dataset
-from helpers import print_table, train_and_validate, unpack_results, get_basic_networks
+from helpers import format_table, train_and_validate, unpack_results, get_basic_networks
 
 # hyper-parameters for training
 epochs = 100
@@ -42,7 +42,10 @@ for name, model in models.items():
     )
 
 # Print test results as table
-print_table(test_sets.keys(), test_results, cellwidth=15)
+table = format_table(test_sets.keys(), test_results, cellwidth=15)
+print(table)
+with open("figures/exp1c_table.txt") as f:
+    f.write(table)
 # Plot results as bar plot
 df = unpack_results(test_results)
 fig, ax = plt.subplots()
