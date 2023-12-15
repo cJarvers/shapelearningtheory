@@ -8,6 +8,7 @@ from helpers import print_table, train_and_validate, unpack_results, get_basic_n
 
 # hyper-parameters for training
 epochs = 100
+repetitions = 5
 
 # get data:
 # training dataset
@@ -35,7 +36,7 @@ test_results = {}
 for name, model in models.items():
     test_results[name] = train_and_validate(
         model, traindata, test_sets,
-        epochs=epochs
+        epochs=epochs, repetitions=repetitions
     )
 
 # Print test results as table

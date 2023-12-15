@@ -7,18 +7,20 @@ from shapelearningtheory.datasets import make_rectangles_color_large, make_recta
 from helpers import print_table, train_and_validate, unpack_results, get_standard_networks
 
 # hyper-parameters for training
-epochs = 20
+epochs = 30
+repetitions = 5
+batch_size = 4
 
 # get data:
 # training dataset
-traindata = make_rectangles_shapeonly_large()
+traindata = make_rectangles_shapeonly_large(batchsize=batch_size)
 #
 # test datasets - parametrized slightly differently to test generalization
 test_sets = {
     "traindata": traindata,
-    "validation": make_rectangles_shapeonly_large(),
-    "with color": make_rectangles_color_large(),
-    "with texture": make_rectangles_texture_large()
+    "validation": make_rectangles_shapeonly_large(batchsize=batch_size),
+    "with color": make_rectangles_color_large(batchsize=batch_size),
+    "with texture": make_rectangles_texture_large(batchsize=batch_size)
 }
 
 # hyperparameters from dataset
@@ -35,7 +37,7 @@ test_results = {}
 for name, model in models.items():
     test_results[name] = train_and_validate(
         model, traindata, test_sets,
-        epochs=epochs
+        epochs=epochs, repetitions=repetitions
     )
 
 # Print test results as table
