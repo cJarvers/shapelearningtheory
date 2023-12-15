@@ -30,7 +30,7 @@ channels = 3
 classes = 2
 
 # define models
-models = get_basic_networks(classes, imagesize, channels)
+models = get_basic_networks(classes, channels, imagesize)
 
 # train and test
 test_results = {}
