@@ -33,7 +33,7 @@ def format_table(test_names: List[str], results: dict, cellwidth: int=15):
         table += " " + testname.ljust(cellwidth-1) + "|"
     table += "\n" + ("|" + "-" * cellwidth) * (len(test_names)+1) + "|"
     for model, model_results in results.items():
-        table += "| " + model.ljust(cellwidth-1)
+        table += "\n" + "| " + model.ljust(cellwidth-1)
         for testname, result in model_results.items():
             r = round(mean(result["test_metric"]), ndigits=3)
             table += "|" + f"{r}".rjust(cellwidth-2) + "  "

@@ -43,7 +43,7 @@ for name, model in models.items():
 # Print test results as table
 table = format_table(test_sets.keys(), test_results, cellwidth=15)
 print(table)
-with open("figures/exp1a_table.txt") as f:
+with open("figures/exp1a_table.txt", "w") as f:
     f.write(table)
 # Plot results as bar plot
 df = unpack_results(test_results)

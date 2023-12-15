@@ -8,7 +8,7 @@ from helpers import format_table, train_and_validate, unpack_results, get_basic_
 
 # hyper-parameters for training
 epochs = 20
-repetitions = 3
+repetitions = 5
 batch_size = 128
 
 # get data:
@@ -44,11 +44,12 @@ for name, model in models.items():
 # Print test results as table
 table = format_table(test_sets.keys(), test_results, cellwidth=15)
 print(table)
-with open("figures/exp1a_table.txt") as f:
+with open("figures/exp1a_table.txt", "w") as f:
     f.write(table)
 # Plot results as bar plot
 df = unpack_results(test_results)
 fig, ax = plt.subplots()
 sns.barplot(df, x="dataset", y="metric", hue="model", ax=ax)
+ax.legend(loc="lower left")
 fig.suptitle("Accuracy on color rectangles")
 plt.savefig("figures/exp1a_barplot.png")
