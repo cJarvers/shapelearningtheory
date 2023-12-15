@@ -20,6 +20,9 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
         elif variant == "random":
             pattern1 = RandomChoiceColor
             pattern2 = RandomChoiceColor
+        elif variant == "conflict":
+            pattern1 = NotRedXORBlue
+            pattern2 = RedXORBlue
         else:
             pattern1 = RedXORBlue
             pattern2 = NotRedXORBlue
@@ -30,6 +33,9 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
         elif variant == "random":
             pattern1 = RandomGrating
             pattern2 = RandomGrating
+        elif variant == "conflict":
+            pattern1 = VerticalGrating
+            pattern2 = HorizontalGrating
         else:
             pattern1 = HorizontalGrating
             pattern2 = VerticalGrating
