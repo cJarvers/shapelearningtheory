@@ -23,9 +23,9 @@ classes = 2
 
 # Generate RDMs for shape and color features
 print("Getting shape RDMs")
-shape_rdms = get_shape_RDMs(testdata.dataset)
+shape_rdms = get_shape_RDMs(testdata.val)
 print("Getting colour RDMs")
-color_rdms = get_color_RDMs(testdata.dataset)
+color_rdms = get_color_RDMs(testdata.val)
 
 # Load constructed models and generate RDMs for them
 color_net = ColorConvNet(imageheight=imgheight, imagewidth=imgwidth)

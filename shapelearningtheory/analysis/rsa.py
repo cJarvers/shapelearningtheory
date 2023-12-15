@@ -37,10 +37,13 @@ def get_shape_RDMs(dataset):
             get_rectangle_width_RDM(dataset)
         ]
     elif isinstance(dataset, LTDataset):
-        properties = ["orientation", "size"]
+        properties = ["orientation", "height", "width", "line strength", "class"]
         rdms = [
             get_LT_orientation_RDM(dataset),
-            get_LT_size_RDM(dataset)
+            get_LT_height_RDM(dataset),
+            get_LT_width_RDM(dataset),
+            get_LT_linestrength_RDM(dataset),
+            get_LT_class_RDM(dataset)
         ]
     rdms = [np.expand_dims(rdm, 0) for rdm in rdms]
     return rsatoolbox.rdm.RDMs(
@@ -74,7 +77,7 @@ def get_texture_RDMs(dataset):
     """
     Compute representational dissimilarity matrices for texture properties
     of `dataset`."""
-    properties = ["texture_orientation", "texture_frequency"]
+    properties = ["theta", "frequency"]
     if isinstance(dataset, RectangleDataset):
         rdms = [
             get_rectangle_texture_orientation_RDM(dataset),
@@ -181,15 +184,18 @@ def get_rectangle_texture_frequency_RDM(dataset: RectangleDataset):
     rdm = np.abs(texture_frequencies.T - texture_frequencies)
     return rdm
 
-def get_LT_size_RDM(dataset: LTDataset):
-    l_sizes = np.array([
-        l.height * l.width for l in dataset.ls
-    ])
-    t_sizes = np.array([
-        t.height * t.width for t in dataset.ts
-    ])
-    sizes = np.concatenate(l_sizes, t_sizes)
-    rdm = np.abs(sizes.T - sizes)
+def get_LT_height_RDM(dataset: LTDataset):
+    l_heights = np.array([l.height for l in dataset.ls])
+    t_heights = np.array([t.height for t in dataset.ts])
+    heights = np.concatenate([l_heights, t_heights])
+    rdm = np.abs(heights.T - heights)
+    return rdm
+
+def get_LT_width_RDM(dataset: LTDataset):
+    l_widths = np.array([l.width for l in dataset.ls])
+    t_widths = np.array([t.width for t in dataset.ts])
+    widths = np.concatenate([l_widths, t_widths])
+    rdm = np.abs(widths.T - widths)
     return rdm
 
 def get_LT_orientation_RDM(dataset: LTDataset):
@@ -222,7 +228,19 @@ def get_LT_orientation_RDM(dataset: LTDataset):
     return rdm
 
 def get_LT_linestrength_RDM(dataset: LTDataset):
-    pass
+    l_strengths = np.array([l.strength for l in dataset.ls])
+    t_strengths = np.array([t.strength for t in dataset.ts])
+    strengths = np.concatenate([l_strengths, t_strengths])
+    rdm = np.abs(strengths.T - strengths)
+    return rdm
+
+def get_LT_class_RDM(dataset: LTDataset):
+    same = np.zeros((len(dataset.ls), len(dataset.ls)))
+    different = np.ones((len(dataset.ls), len(dataset.ls)))
+    upper = np.concatenate([same, different], axis=0)
+    lower = np.concatenate([different, same], axis=0)
+    rdm = np.concatenate([upper, lower], axis=1)
+    return rdm
 
 def get_LT_color_RDM():
     pass
