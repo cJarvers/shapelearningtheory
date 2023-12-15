@@ -118,7 +118,7 @@ class TextureConvNet(FixedSequential):
         super().__init__()
         self.append(GaborLayer())
         self.append(torch.nn.ReLU())
-        self.append(SumChannels(24, 2))
+        self.append(SumChannels(8, 2))
         self.append(torch.nn.AdaptiveMaxPool2d(output_size=1))
         self.append(torch.nn.Flatten())
 
@@ -222,7 +222,7 @@ class GaborLayer(torch.nn.Conv2d):
         kernel_size = horizontal_gabor.shape
         super().__init__(
             in_channels=3,
-            out_channels=24,
+            out_channels=8,
             kernel_size=kernel_size,
             bias=False, 
             padding="same",
@@ -234,26 +234,26 @@ class GaborLayer(torch.nn.Conv2d):
             self.weight[ 1, 0, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
             self.weight[ 2, 0, :, :] = torch.from_numpy(  horizontal_gabor.imag)
             self.weight[ 3, 0, :, :] = torch.from_numpy(- horizontal_gabor.imag)
-            self.weight[ 4, 1, :, :] = torch.from_numpy(  horizontal_gabor.real - horizontal_gabor.real.mean())
-            self.weight[ 5, 1, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
-            self.weight[ 6, 1, :, :] = torch.from_numpy(  horizontal_gabor.imag)
-            self.weight[ 7, 1, :, :] = torch.from_numpy(- horizontal_gabor.imag)
-            self.weight[ 8, 2, :, :] = torch.from_numpy(  horizontal_gabor.real - horizontal_gabor.real.mean())
-            self.weight[ 9, 2, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
-            self.weight[10, 2, :, :] = torch.from_numpy(  horizontal_gabor.imag)
-            self.weight[11, 2, :, :] = torch.from_numpy(- horizontal_gabor.imag)
-            self.weight[12, 0, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
-            self.weight[13, 0, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
-            self.weight[14, 0, :, :] = torch.from_numpy(  vertical_gabor.imag)
-            self.weight[15, 0, :, :] = torch.from_numpy(- vertical_gabor.imag)
-            self.weight[16, 1, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
-            self.weight[17, 1, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
-            self.weight[18, 1, :, :] = torch.from_numpy(  vertical_gabor.imag)
-            self.weight[19, 1, :, :] = torch.from_numpy(- vertical_gabor.imag)
-            self.weight[20, 2, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
-            self.weight[21, 2, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
-            self.weight[22, 2, :, :] = torch.from_numpy(  vertical_gabor.imag)
-            self.weight[23, 2, :, :] = torch.from_numpy(- vertical_gabor.imag)
+            self.weight[ 0, 1, :, :] = torch.from_numpy(  horizontal_gabor.real - horizontal_gabor.real.mean())
+            self.weight[ 1, 1, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
+            self.weight[ 2, 1, :, :] = torch.from_numpy(  horizontal_gabor.imag)
+            self.weight[ 3, 1, :, :] = torch.from_numpy(- horizontal_gabor.imag)
+            self.weight[ 0, 2, :, :] = torch.from_numpy(  horizontal_gabor.real - horizontal_gabor.real.mean())
+            self.weight[ 1, 2, :, :] = torch.from_numpy(- horizontal_gabor.real + horizontal_gabor.real.mean())
+            self.weight[ 2, 2, :, :] = torch.from_numpy(  horizontal_gabor.imag)
+            self.weight[ 3, 2, :, :] = torch.from_numpy(- horizontal_gabor.imag)
+            self.weight[ 4, 0, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
+            self.weight[ 5, 0, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
+            self.weight[ 6, 0, :, :] = torch.from_numpy(  vertical_gabor.imag)
+            self.weight[ 7, 0, :, :] = torch.from_numpy(- vertical_gabor.imag)
+            self.weight[ 4, 1, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
+            self.weight[ 5, 1, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
+            self.weight[ 6, 1, :, :] = torch.from_numpy(  vertical_gabor.imag)
+            self.weight[ 7, 1, :, :] = torch.from_numpy(- vertical_gabor.imag)
+            self.weight[ 4, 2, :, :] = torch.from_numpy(  vertical_gabor.real - vertical_gabor.real.mean())
+            self.weight[ 5, 2, :, :] = torch.from_numpy(- vertical_gabor.real + vertical_gabor.real.mean())
+            self.weight[ 6, 2, :, :] = torch.from_numpy(  vertical_gabor.imag)
+            self.weight[ 7, 2, :, :] = torch.from_numpy(- vertical_gabor.imag)
 
 class SobelLayer(torch.nn.Conv2d):
     """Convolution layer that performs Sobel filtering in x and y direction."""
