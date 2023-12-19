@@ -7,9 +7,9 @@ from shapelearningtheory.datasets import make_dataset
 from helpers import format_table, train_and_validate, unpack_results, get_standard_networks
 
 # hyper-parameters for training
-epochs = 5
-repetitions = 2
-batch_size = 4
+epochs = 20
+repetitions = 3
+batch_size = 16
 
 # get data:
 # training dataset
@@ -49,5 +49,5 @@ with open("figures/exp1h_table.txt", "w") as f:
 df = unpack_results(test_results)
 fig, ax = plt.subplots()
 sns.barplot(df, x="dataset", y="metric", hue="model", ax=ax)
-fig.suptitle("Accuracy on stripe LvT large")
+fig.suptitle("Accuracy on striped LvT large")
 plt.savefig("figures/exp1h_barplot.png")

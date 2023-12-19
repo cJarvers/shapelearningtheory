@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
+import rsatoolbox
 import seaborn as sns
-from typing import Callable
+from typing import Callable, List
 # local imports
 from .helpers import Table
 
@@ -24,3 +25,23 @@ def plot_table(table: Table, plotfun, fig_params={}, plot_params={}):
                 ax[i, j].set_title(row)
     return fig
 
+def plot_rdm_grid(rdm_list: List[rsatoolbox.rdm.RDMs]):
+    rows = len(rdm_list)
+    cols = max(len(rdms.dissimilarities) for rdms in rdm_list)
+    fig, ax = plt.subplots(rows, cols)
+    for row, rdms in enumerate(rdm_list):
+        for col, rdm in enumerate(rdms):
+            ax[row][col].imshow(
+                rdm.get_matrices().squeeze(),
+                cmap="bone",
+                vmin=0.0,
+                interpolation="none")
+            # set column titles
+            ax[row][col].set_title(rdm.rdm_descriptors["property"][0])
+            ax[row][col].set_axis_off()
+        for col in range(len(rdms), cols):
+            ax[row][col].set_axis_off()
+        # set row titles
+        ax[row][0].get_yaxis().set_visible(True)
+        ax[row][0].set_ylabel(rdms.rdm_descriptors["feature_type"][0])
+    return fig

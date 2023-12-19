@@ -64,6 +64,15 @@ def get_color_RDMs(dataset):
             get_rectangle_redblue_RDM(dataset),
             get_rectangle_color_RDM(dataset)
         ]
+    elif isinstance(dataset, LTDataset):
+        properties = ["R", "G", "B", "abs(R-B)", "color"]
+        rdms = [
+            get_LT_redness_RDM(dataset),
+            get_LT_greenness_RDM(dataset),
+            get_LT_blueness_RDM(dataset),
+            get_LT_redblue_RDM(dataset),
+            get_LT_color_RDM(dataset)
+        ]
     rdms = [np.expand_dims(rdm, 0) for rdm in rdms]
     return rsatoolbox.rdm.RDMs(
         np.concatenate(rdms, axis=0),
@@ -82,6 +91,11 @@ def get_texture_RDMs(dataset):
         rdms = [
             get_rectangle_texture_orientation_RDM(dataset),
             get_rectangle_texture_frequency_RDM(dataset)
+        ]
+    elif isinstance(dataset, LTDataset):
+        rdms = [
+            get_LT_texture_orientation_RDM(dataset),
+            get_LT_texture_frequency_RDM(dataset)
         ]
     rdms = [np.expand_dims(rdm, 0) for rdm in rdms]
     return rsatoolbox.rdm.RDMs(
@@ -185,16 +199,18 @@ def get_rectangle_texture_frequency_RDM(dataset: RectangleDataset):
     return rdm
 
 def get_LT_height_RDM(dataset: LTDataset):
-    l_heights = np.array([l.height for l in dataset.ls])
-    t_heights = np.array([t.height for t in dataset.ts])
+    l_heights = np.array([l.shape.height for l in dataset.ls])
+    t_heights = np.array([t.shape.height for t in dataset.ts])
     heights = np.concatenate([l_heights, t_heights])
+    heights = np.expand_dims(heights, 1)
     rdm = np.abs(heights.T - heights)
     return rdm
 
 def get_LT_width_RDM(dataset: LTDataset):
-    l_widths = np.array([l.width for l in dataset.ls])
-    t_widths = np.array([t.width for t in dataset.ts])
+    l_widths = np.array([l.shape.width for l in dataset.ls])
+    t_widths = np.array([t.shape.width for t in dataset.ts])
     widths = np.concatenate([l_widths, t_widths])
+    widths = np.expand_dims(widths, 1)
     rdm = np.abs(widths.T - widths)
     return rdm
 
@@ -218,19 +234,21 @@ def get_LT_orientation_RDM(dataset: LTDataset):
         elif topside == "right":
             return 0
     l_angles = np.array([
-        corner_to_angle(l.corner) for l in dataset.ls
+        corner_to_angle(l.shape.corner) for l in dataset.ls
     ])
     t_angles = np.array([
-        topside_to_angle(t.topside) for t in dataset.ts
+        topside_to_angle(t.shape.topside) for t in dataset.ts
     ])
-    angles = np.concatenate(l_angles, t_angles)
+    angles = np.concatenate([l_angles, t_angles])
+    angles = np.expand_dims(angles, 1)
     rdm = 1 - np.cos(angles.T - angles)
     return rdm
 
 def get_LT_linestrength_RDM(dataset: LTDataset):
-    l_strengths = np.array([l.strength for l in dataset.ls])
-    t_strengths = np.array([t.strength for t in dataset.ts])
+    l_strengths = np.array([l.shape.strength for l in dataset.ls])
+    t_strengths = np.array([t.shape.strength for t in dataset.ts])
     strengths = np.concatenate([l_strengths, t_strengths])
+    strengths = np.expand_dims(strengths, 1)
     rdm = np.abs(strengths.T - strengths)
     return rdm
 
@@ -242,5 +260,62 @@ def get_LT_class_RDM(dataset: LTDataset):
     rdm = np.concatenate([upper, lower], axis=1)
     return rdm
 
-def get_LT_color_RDM():
-    pass
+def get_LT_redness_RDM(dataset: LTDataset):
+    l_red = [l.pattern.color.squeeze()[0].item() for l in dataset.ls]
+    t_red = [t.pattern.color.squeeze()[0].item() for t in dataset.ts]
+    red_intensity = l_red + t_red
+    red_intensity = np.expand_dims(np.array(red_intensity), 1)
+    rdm = np.abs(red_intensity.T - red_intensity)
+    return rdm
+
+def get_LT_greenness_RDM(dataset: LTDataset):
+    l_green = [l.pattern.color.squeeze()[1].item() for l in dataset.ls]
+    t_green = [t.pattern.color.squeeze()[1].item() for t in dataset.ts]
+    green_intensity = l_green + t_green
+    green_intensity = np.expand_dims(np.array(green_intensity), 1)
+    rdm = np.abs(green_intensity.T - green_intensity)
+    return rdm
+
+def get_LT_blueness_RDM(dataset: LTDataset):
+    l_blue = [l.pattern.color.squeeze()[2].item() for l in dataset.ls]
+    t_blue = [t.pattern.color.squeeze()[2].item() for t in dataset.ts]
+    blue_intensity = l_blue + t_blue
+    blue_intensity = np.expand_dims(np.array(blue_intensity), 1)
+    rdm = np.abs(blue_intensity.T - blue_intensity)
+    return rdm
+
+def get_LT_redblue_RDM(dataset: LTDataset):
+    l_red = [l.pattern.color.squeeze()[0].item() for l in dataset.ls]
+    t_red = [t.pattern.color.squeeze()[0].item() for t in dataset.ts]
+    red_intensity = l_red + t_red
+    l_blue = [l.pattern.color.squeeze()[2].item() for l in dataset.ls]
+    t_blue = [t.pattern.color.squeeze()[2].item() for t in dataset.ts]
+    blue_intensity = l_blue + t_blue
+    difference = np.abs(np.array(red_intensity) - np.array(blue_intensity))
+    difference = np.expand_dims(difference, 1)
+    rdm = np.abs(difference.T - difference)
+    return rdm
+
+def get_LT_color_RDM(dataset: LTDataset):
+    l_colors = [l.pattern.color for l in dataset.ls]
+    t_colors = [t.pattern.color for t in dataset.ts]
+    colors = l_colors + t_colors
+    colors = torch.cat(colors).squeeze()
+    rdm = torch.cdist(colors, colors).numpy()
+    return rdm
+
+def get_LT_texture_orientation_RDM(dataset: LTDataset):
+    l_orientations = [l.pattern.orientation for l in dataset.ls]
+    t_orientations = [t.pattern.orientation for t in dataset.ts]
+    texture_orientations = np.array(l_orientations + t_orientations)
+    texture_orientations = np.expand_dims(texture_orientations, 1)
+    rdm = 1 - np.cos(texture_orientations.T - texture_orientations)
+    return rdm
+
+def get_LT_texture_frequency_RDM(dataset: LTDataset):
+    l_frequencies = [l.pattern.frequency for l in dataset.ls]
+    t_frequencies = [t.pattern.frequency for t in dataset.ts]
+    texture_frequencies = np.array(l_frequencies + t_frequencies)
+    texture_frequencies = np.expand_dims(texture_frequencies, 1)
+    rdm = np.abs(texture_frequencies.T - texture_frequencies)
+    return rdm

@@ -53,16 +53,16 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
             widths = range(7, 13)
             strengths = range(1, 3)
     else:
-        height = 224
-        width = 224
+        height = 112
+        width = 112
         oversampling_factor = 2
-        stride = 20
+        stride = 10
         if shape == "rectangles":
-            lengths=[50, 90, 100, 110, 150]
-            widths=[40, 80, 90, 100, 140]
+            lengths=[20, 30, 40, 50, 60]
+            widths=[10, 19, 29, 39, 49]
         else:
-            lengths = [50, 100, 150]
-            widths = [50, 100, 150]
+            lengths = [30, 40, 50]
+            widths = [30, 40, 50]
             strengths = [5, 10, 15]
     if variant == "patternonly":
         dataset = SquaresDataModule(

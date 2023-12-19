@@ -1,6 +1,7 @@
 import torch
 from typing import List, Callable
 from .trainingwrapper import TrainingWrapper
+from .solutionnetworks import RootLU
 
 class SimpleConvNet(TrainingWrapper):
 
@@ -103,3 +104,85 @@ class RecurrentConvNet(SimpleConvNet):
         # after recurrent iterations finish, pass output of highest layer
         # on to fully connected part
         return self.layers[-2:](o)
+
+
+class RectangleLikeConvNet(TrainingWrapper):
+    """Network with same architecture as CRectangleConvNet, but with trained weights."""
+    def __init__(self, loss_fun: Callable, metric: Callable,
+            lr: float=0.01, weight_decay: float=1e-4, momentum: float=0.9,
+            gamma: float=0.99):
+        layers = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 2, kernel_size=3), # Laplace
+            RootLU(),
+            torch.nn.Conv2d(2, 1, kernel_size=1), # SumChannels
+            torch.nn.Conv2d(1, 4, kernel_size=3), # Sobel
+            RootLU(coeff=0.5),
+            torch.nn.Conv2d(4, 2, kernel_size=1), # Borders
+            torch.nn.Conv2d(2, 4, kernel_size=13), # Distances
+            torch.nn.Conv2d(4, 2, kernel_size=1),
+            torch.nn.AdaptiveMaxPool2d(output_size=1),
+            torch.nn.Flatten()
+        )
+        super().__init__(net=layers, loss_fun=loss_fun, metric=metric, lr=lr,
+                         weight_decay=weight_decay, momentum=momentum, gamma=gamma)
+        
+    def forward(self, x):
+        return self.layers(x)
+    
+class ColorLikeConvNet(TrainingWrapper):
+    def __init__(self, loss_fun: Callable, metric: Callable,
+            lr: float=0.01, weight_decay: float=1e-4, momentum: float=0.9,
+            gamma: float=0.99):
+        layers = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 2, kernel_size=1),
+            torch.nn.ReLU(),
+            torch.nn.AdaptiveMaxPool2d(output_size=1),
+            torch.nn.Flatten(),
+            torch.nn.Linear(2, 2)
+        )
+        super().__init__(net=layers, loss_fun=loss_fun, metric=metric, lr=lr,
+                         weight_decay=weight_decay, momentum=momentum, gamma=gamma)
+        
+    def forward(self, x):
+        return self.layers(x)
+    
+class TextureLikeConvNet(TrainingWrapper):
+    def __init__(self, loss_fun: Callable, metric: Callable,
+            lr: float=0.01, weight_decay: float=1e-4, momentum: float=0.9,
+            gamma: float=0.99):
+        layers = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 8, kernel_size=21, padding="same"), # Gabor
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(8, 2, kernel_size=1),
+            torch.nn.AdaptiveMaxPool2d(output_size=1),
+            torch.nn.Flatten()
+        )
+        super().__init__(net=layers, loss_fun=loss_fun, metric=metric, lr=lr,
+                         weight_decay=weight_decay, momentum=momentum, gamma=gamma)
+        
+    def forward(self, x):
+        return self.layers(x)
+
+class LTLikeConvNet(TrainingWrapper):
+    def __init__(self, loss_fun: Callable, metric: Callable,
+            lr: float=0.01, weight_decay: float=1e-4, momentum: float=0.9,
+            gamma: float=0.99):
+        layers = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 2, kernel_size=3), # Laplace
+            RootLU(),
+            torch.nn.Conv2d(2, 1, kernel_size=1), # SumChannels
+            torch.nn.Conv2d(1, 4, kernel_size=3), # Sobel
+            RootLU(coeff=0.5),
+            torch.nn.Conv2d(4, 1, kernel_size=1),
+            torch.nn.Conv2d(1, 4, kernel_size=5), # End detectors
+            RootLU(),
+            torch.nn.AdaptiveAvgPool2d(output_size=1),
+            torch.nn.Conv2d(4, 1, kernel_size=1),
+            torch.nn.Conv2d(1, 2, kernel_size=1),
+            torch.nn.Flatten()
+        )
+        super().__init__(net=layers, loss_fun=loss_fun, metric=metric, lr=lr,
+                         weight_decay=weight_decay, momentum=momentum, gamma=gamma)
+        
+    def forward(self, x):
+        return self.layers(x)

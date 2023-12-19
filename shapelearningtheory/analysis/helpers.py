@@ -64,19 +64,13 @@ def apply_with_torch(f, arrays):
 def get_activations(net, x, use_image=True):
     """
     Get activations of `net` for input `x`.
-    Extracts outputs of Linear and Conv2d layers.
-    Assumes that iterating over `net` returns layers in correct order.
+    Extracts outputs of .layers_of_interest() of that network.
     """
+    outputs = apply_to_layers(lambda subnet: subnet(x), net)
     if use_image:
-        outputs = {'image': x}
-    else:
-        outputs = {}
-    layers = net.modules()
-    layers = filter(lambda x: not isinstance(x, torch.nn.Sequential), layers)
-    for i, layer in enumerate(layers):
-        x = layer(x)
-        if isinstance(layer, torch.nn.Conv2d) or isinstance(layer, torch.nn.Linear):
-            outputs["layer {}".format(i)] = x
+        with_image = {'image': x}
+        with_image.update(outputs)
+        outputs = with_image
     return outputs
 
 def get_activations_dataset(net, data, use_image=True):

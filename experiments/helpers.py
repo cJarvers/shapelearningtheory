@@ -2,11 +2,14 @@ import pandas as pd
 import pytorch_lightning as pl
 from statistics import mean
 from typing import Any, Callable, List
+import torch
+from torchmetrics import Accuracy
 # local imports
 from shapelearningtheory.networks import make_resnet50, make_vit_b_16, \
     make_vgg_19, \
     make_mlp_small, make_convnet_small, make_rconvnet_small, \
     make_softmaxconv_small, make_ViT_small, make_AE_small
+from shapelearningtheory.networks.convnet import RectangleLikeConvNet, ColorLikeConvNet, TextureLikeConvNet, LTLikeConvNet
 
 def get_basic_networks(classes, channels, imagesize):
     return {
@@ -23,6 +26,22 @@ def get_standard_networks(classes, imagesize):
         "VGG19": lambda: make_vgg_19(classes),
         "Resnet": lambda: make_resnet50(classes),
         "ViT_b_16": lambda: make_vit_b_16(imagesize, classes)
+    }
+
+def get_featurelike_networks(classes):
+    return {
+        "RectangleNetLike": lambda: RectangleLikeConvNet(
+            loss_fun=torch.nn.functional.cross_entropy,
+            metric=Accuracy("multiclass", num_classes=classes)),
+        "LTNetLike": lambda: LTLikeConvNet(
+            loss_fun=torch.nn.functional.cross_entropy,
+            metric=Accuracy("multiclass", num_classes=classes)),
+        "ColorLike": lambda: ColorLikeConvNet(
+            loss_fun=torch.nn.functional.cross_entropy,
+            metric=Accuracy("multiclass", num_classes=classes)),
+        "TextureLike": lambda: TextureLikeConvNet(
+            loss_fun=torch.nn.functional.cross_entropy,
+            metric=Accuracy("multiclass", num_classes=classes))
     }
 
 def format_table(test_names: List[str], results: dict, cellwidth: int=15):

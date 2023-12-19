@@ -50,5 +50,5 @@ with open("figures/exp1d_table.txt", "w") as f:
 df = unpack_results(test_results)
 fig, ax = plt.subplots()
 sns.barplot(df, x="dataset", y="metric", hue="model", ax=ax, legend=False)
-fig.suptitle("Accuracy on stripted LvT")
+fig.suptitle("Accuracy on striped LvT")
 plt.savefig("figures/exp1d_barplot.png")

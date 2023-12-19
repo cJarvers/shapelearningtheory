@@ -7,9 +7,9 @@ from shapelearningtheory.datasets import make_dataset
 from helpers import format_table, train_and_validate, unpack_results, get_standard_networks
 
 # hyper-parameters for training
-epochs = 30
-repetitions = 5
-batch_size = 4
+epochs = 20
+repetitions = 3
+batch_size = 16
 
 # get data:
 # training dataset
