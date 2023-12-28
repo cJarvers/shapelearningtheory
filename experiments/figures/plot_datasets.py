@@ -1,12 +1,7 @@
 from matplotlib import pyplot as plt
 import sys
 sys.path.append("../..")
-from shapelearningtheory.datasets import make_rectangles_color, \
-    make_rectangles_texture, make_LT_color, make_LT_texture
-from shapelearningtheory.colors import RedXORBlue, NotRedXORBlue, RandomGrey
-from shapelearningtheory.datasets.rectangledataset import RectangleDataset
-from shapelearningtheory.datasets.LTPlusDataset import LTDataset
-from shapelearningtheory.textures import HorizontalGrating, VerticalGrating
+from shapelearningtheory.datasets import make_dataset
 
 def normalize_image(img):
     minimum = min(img.min(), 0.)
@@ -14,24 +9,33 @@ def normalize_image(img):
     return (img - minimum) / (maximum - minimum)
 
 
-datasets = {
-    "color rectangles": make_rectangles_color(),
-    "striped rectangles": make_rectangles_texture(),
-    "color LvT": make_LT_color(),
-    "striped LvT": make_LT_texture()
-}
+patterns = ["color", "striped"]
+shapes = ["rectangles", "LvT"]
+sizes = ["small", "large"]
+classes = ["class 1", "class 2"]
 
-imgs_per_dataset = 3
-fig, ax = plt.subplots(imgs_per_dataset, len(datasets),
-    figsize=(3*len(datasets), 3*imgs_per_dataset))
+rows = len(sizes) * len(classes)
+cols = len(shapes) * len(patterns)
 
-for i, (name, data) in enumerate(datasets.items()):
-    data.prepare_data()
-    n_imgs = len(data.dataset)
-    ax[0][i].imshow(data.dataset[0][0].permute(1,2,0))
-    ax[1][i].imshow(data.dataset[n_imgs//2][0].permute(1,2,0))
-    ax[2][i].imshow(data.dataset[-1][0].permute(1,2,0))
-    ax[0][i].set_title(name, fontsize="large", fontweight="bold")
+fig, ax = plt.subplots(rows, cols,
+    figsize=(3*rows, 3*cols))
+
+for s, shape in enumerate(shapes):
+    for p, pattern in enumerate(patterns):
+        for n, size in enumerate(sizes):
+            data = make_dataset(shape, pattern, size, "standard")
+            data.prepare_data()
+            n_imgs = len(data.val)
+            idx = n_imgs // 4
+            x = len(patterns) * s + p
+            y = 2 * n
+            ax[y][x].imshow(normalize_image(data.val[idx][0].permute(1,2,0)))
+            ax[y+1][x].imshow(normalize_image(data.val[n_imgs//2+idx][0].permute(1,2,0)))
+            if y == 0:
+                ax[y][x].set_title(pattern + " " + shape, fontsize="large", fontweight="bold")
+            if x == 0:
+                ax[y][x].set_ylabel(classes[0] + ", " + size, fontsize="large", fontweight="bold")
+                ax[y+1][x].set_ylabel(classes[1] + ", " + size, fontsize="large", fontweight="bold")
 
 # Formatting
 # remove ticks
