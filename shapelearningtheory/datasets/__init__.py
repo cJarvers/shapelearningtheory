@@ -10,7 +10,7 @@ from ..textures import HorizontalGrating, VerticalGrating, RandomGrating
 
 def make_dataset(shape: Literal["rectangles", "LvT"],
                  pattern: Literal["color", "stripes"],
-                 size: Literal["small", "large"],
+                 size: Literal["small", "large", "eval"],
                  variant: Literal["standard", "shapeonly", "patternonly", "conflict", "random"],
                  batchsize=128, num_workers=4):
     if pattern == "color":
@@ -52,6 +52,18 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
             lengths = range(7, 13)
             widths = range(7, 13)
             strengths = range(1, 3)
+    elif size == "eval":
+        height = 18
+        width = 18
+        oversampling_factor = 1
+        if shape == "rectangles":
+            lengths=range(7, 13)
+            widths=range(5, 10, 2)
+            stride = 4
+        else:
+            heights=range(7, 13, 2)
+            widths=range(7, 13, 3)
+            stride=6
     else:
         height = 112
         width = 112
