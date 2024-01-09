@@ -111,3 +111,8 @@ class SoftmaxConvNet(TrainingWrapper):
         layers.append(torch.nn.Flatten())
         layers.append(torch.nn.LazyLinear(out_units))
         return layers
+    
+    def get_layers_of_interest(self):
+        blocks = {f"block{i}": i for i in range(1, len(self.layers)-1)}
+        blocks["output"] = len(self.layers)
+        return blocks

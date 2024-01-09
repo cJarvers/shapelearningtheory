@@ -13,6 +13,9 @@ class TrainingWrapper(pl.LightningModule):
         self.loss_fun = loss_fun
         self.metric = metric
 
+    def __getitem__(self, idx):
+        return self.layers[idx]
+
     def compute_loss(self, batch: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         x, y = batch
         p = self.forward(x)
