@@ -59,11 +59,12 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
         if shape == "rectangles":
             lengths=range(7, 13)
             widths=range(5, 10, 2)
-            stride = 4
+            stride = 2
         else:
-            heights=range(7, 13, 2)
+            lengths=range(7, 13, 2)
             widths=range(7, 13, 3)
-            stride=6
+            strengths = range(3, 4)
+            stride=2
     else:
         height = 112
         width = 112
@@ -116,5 +117,6 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
             )
         else:
             raise ValueError("Unkown shape: " + shape)
+    dataset.prepare_data()
     return dataset
     
