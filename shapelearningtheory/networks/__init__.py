@@ -97,7 +97,8 @@ def make_resnet50(classes):
     net = TrainingWrapper(
         net = resnet50(num_classes=classes),
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=classes)
+        metric=Accuracy("multiclass", num_classes=classes),
+        lr=0.001
     )
     return net
 
@@ -111,7 +112,8 @@ def make_vit_b_16(imgsize, classes):
         hidden_dim=768,
         mlp_dim=3072,
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=2)
+        metric=Accuracy("multiclass", num_classes=2),
+        lr=0.001
     )
     return vit
 
@@ -119,6 +121,7 @@ def make_vgg_19(classes):
     vgg = TrainingWrapper(
         net = vgg19_bn(num_classes=classes),
         loss_fun=torch.nn.functional.cross_entropy,
-        metric=Accuracy("multiclass", num_classes=classes)
+        metric=Accuracy("multiclass", num_classes=classes),
+        lr=0.001
     )
     return vgg
