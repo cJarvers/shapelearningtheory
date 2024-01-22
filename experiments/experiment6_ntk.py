@@ -2,6 +2,7 @@ import argparse
 from matplotlib import pyplot as plt
 import os
 import sys
+import pandas as pd
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import Callback
 import seaborn as sns
@@ -19,7 +20,7 @@ parser.add_argument("--nettype", type=str, default="ConvNet", choices=["ConvNet"
 parser.add_argument("--shape", type=str, default="rectangles", choices=["rectangles", "LvT"])
 parser.add_argument("--pattern", type=str, default="color", choices=["color", "striped"])
 parser.add_argument("--eval_variant", type=str, default="standard", choices=["standard", "random"])
-# repetitions = 10
+parser.add_argument("--repetitions", type=int, default=10)
 
 def set_up_networks(nettype: Literal["ConvNet", "spcConvNet"], shape: Literal["rectangles", "LvT"], pattern: Literal["color", "striped"]):
     if nettype == "ConvNet":
@@ -117,36 +118,54 @@ def create_save_path(net, shape, pattern):
 if __name__ == "__main__":
     args = parser.parse_args()
     args.patternname = "color" if args.pattern == "color" else "texture"
+    args.shapenet = "RectangleNet" if args.shape == "rectangles" else "LvTNet"
+    args.patternnet = "ColorNet" if args.pattern == "color" else "StripeNet"
     figpath = create_save_path(args.nettype, args.shape, args.pattern)
-    # similarities = run_analysis(args.nettype, args.shape, args.pattern, repetitions, args.eval_variant)
-    # plot_similarities(args.pattern, args.shape, similarities)
+    # set up logging
+    similarities = []
+    # old code:
+    #similarities = run_analysis(args.nettype, args.shape, args.pattern, repetitions, args.eval_variant)
+    #plot_similarities(args.pattern, args.shape, similarities)
     ## Evaluate NTK during training
-    # set up data   
-    train_data = make_dataset(args.shape, args.pattern, "small", "standard")
-    eval_data = make_dataset(args.shape, args.pattern, "eval", args.eval_variant, batchsize=512)
-    x, _ = next(iter(eval_data.test_dataloader()))
-    # set up networks, trainer and callbacks
-    net, shapenet, patternnet = set_up_networks(args.nettype, args.shape, args.pattern)
-    net(x[0:1]) # initialize lazy layers
-    # compute NTK for randomly initialized network
-    ntk_pre = get_ntk(net, x)
-    # train
-    callback = NTKSimilarityCallback(x.to(device="cuda"),
-                                     shapenet.to(device="cuda"),
-                                     patternnet.to(device="cuda"))
-    trainer = Trainer(max_epochs=10, accelerator="gpu",
-                      logger=False, enable_checkpointing=False,
-                      callbacks=[callback])
-    # train network
-    trainer.fit(net, train_data)
+    for rep in range(args.repetitions):
+        # set up data   
+        train_data = make_dataset(args.shape, args.pattern, "small", "standard")
+        eval_data = make_dataset(args.shape, args.pattern, "eval", args.eval_variant, batchsize=512)
+        x, _ = next(iter(eval_data.test_dataloader()))
+        # set up networks, trainer and callbacks
+        net, shapenet, patternnet = set_up_networks(args.nettype, args.shape, args.pattern)
+        net(x[0:1]) # initialize lazy layers
+        # compute NTK for randomly initialized network
+        ntk_pre = get_ntk(net, x)
+        # train
+        callback = NTKSimilarityCallback(x.to(device="cuda"),
+                                        shapenet.to(device="cuda"),
+                                        patternnet.to(device="cuda"))
+        trainer = Trainer(max_epochs=10, accelerator="gpu",
+                        logger=False, enable_checkpointing=False,
+                        callbacks=[callback])
+        # train network
+        trainer.fit(net, train_data)
+        # store results
+        batches = len(callback.sim_net2shape)
+        similarities.append(
+            pd.DataFrame(zip(callback.sim_net2shape, [args.shapenet]*batches, [rep]*batches),
+                         columns=["NTK similarity", args.nettype + " and:", "repetition"])
+        )
+        similarities.append(
+            pd.DataFrame(zip(callback.sim_net2pattern, [args.patternnet]*batches, [rep]*batches),
+                         columns=["NTK similarity", args.nettype + " and:", "repetition"])
+        )
+    similarities = pd.concat(similarities)
     # plot results
     plt.clf()
-    plt.plot(callback.sim_net2shape, label=f"{args.nettype} to {args.shape}net")
-    plt.plot(callback.sim_net2pattern, label=f"{args.nettype} to {args.patternname}net")
-    plt.legend()
-    plt.title("NTK similarity")
+    #plt.plot(callback.sim_net2shape, label=f"{args.nettype} to {args.shape}net")
+    #plt.plot(callback.sim_net2pattern, label=f"{args.nettype} to {args.patternname}net")
+    #plt.legend()
+    sns.lineplot(similarities, x=similarities.index, y="NTK similarity", hue=args.nettype + " and:")
+    #plt.title("NTK similarity")
     plt.xlabel("training batch")
-    plt.ylabel("similarity")
+    #plt.ylabel("similarity")
     plt.savefig(figpath + "/similarity.png", bbox_inches="tight")
     plt.clf()
     # plot NTKs after training
