@@ -18,6 +18,16 @@ def empirical_ntk(net_fun, params, xs):
     jacobians =  vmap(jacrev(net_fun), (None, 0))(params, xs)
     jacobians = [j.flatten(2) for j in jacobians.values()]
     # compute matrix product of jacobians J: J(xs) @ J(xs).T
-    kernel = torch.stack([torch.einsum('Naf,Maf->NMa', j, j) for j in jacobians])
+    kernel = torch.stack([torch.einsum('Naf,Maf->NM', j, j) for j in jacobians])
     kernel = kernel.sum(0)
     return kernel
+
+def get_ntk(net: torch.nn.Module, data: torch.Tensor):
+    ntk = empirical_ntk(functionalize(net), get_parameters(net), data)
+    return ntk
+
+def get_ntk_similarity(net1, net2, data):
+    ntk1 = get_ntk(net1, data).flatten().unsqueeze(0)
+    ntk2 = get_ntk(net2, data).flatten().unsqueeze(0)
+    similarity = torch.cosine_similarity(ntk1, ntk2).item()
+    return similarity

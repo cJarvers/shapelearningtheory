@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import pytorch_lightning as pl
 from statistics import mean
@@ -10,6 +11,11 @@ from shapelearningtheory.networks import make_resnet50, make_vit_b_16, \
     make_mlp_small, make_convnet_small, make_rconvnet_small, \
     make_softmaxconv_small, make_ViT_small, make_AE_small
 from shapelearningtheory.networks.convnet import RectangleLikeConvNet, ColorLikeConvNet, TextureLikeConvNet, LTLikeConvNet
+
+def create_save_path(*dirs):
+    path = os.path.join(*dirs)
+    os.makedirs(path, exist_ok=True)
+    return path
 
 def get_basic_networks(classes, channels, imagesize):
     return {
