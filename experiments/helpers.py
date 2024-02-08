@@ -95,5 +95,5 @@ def unpack_results(test_results):
             models.extend([model] * n)
             datasets.extend([testname] * n)
             metrics.extend(result["test_metric"])
-    df = pd.DataFrame({"model": models, "dataset": datasets, "metric": metrics})
+    df = pd.DataFrame({"model": models, "dataset": datasets, "accuracy": metrics})
     return df

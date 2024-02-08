@@ -64,7 +64,7 @@ if __name__ == "__main__":
     df = unpack_results(test_results)
     df.to_csv(figpath + "/results.csv")
     fig, ax = plt.subplots()
-    sns.barplot(df, x="dataset", y="metric", hue="model", ax=ax)
+    sns.barplot(df, x="dataset", y="accuracy", hue="model", ax=ax)
     if args.showlegend:
         ax.legend(loc="lower left")
     fig.suptitle(f"Accuracy on {args.pattern} {args.shape}")
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     with open(figpath + "/sign_tests.txt", "w") as f:
         for i, net in enumerate(models.keys()):
             for j, dataset in enumerate(test_sets.keys()):
-                accuracies = df[(df["model"] == net) & (df["dataset"] == dataset)].loc[:, "metric"]
+                accuracies = df[(df["model"] == net) & (df["dataset"] == dataset)].loc[:, "accuracy"]
                 M, p = sign_test(accuracies, 0.5)
                 f.write(f"{net},  {dataset}:\t M = {M},\t p = {p}\n")
                 if p < 0.05:
