@@ -9,7 +9,7 @@ from torchmetrics import Accuracy
 from shapelearningtheory.networks import make_resnet50, make_vit_b_16, \
     make_vgg_19, \
     make_mlp_small, make_convnet_small, make_rconvnet_small, \
-    make_softmaxconv_small, make_ViT_small, make_AE_small
+    make_softmaxconv_small, make_ViT_small, make_AE_small, make_swin_t
 from shapelearningtheory.networks.convnet import RectangleLikeConvNet, ColorLikeConvNet, TextureLikeConvNet, LTLikeConvNet
 
 def create_save_path(*dirs):
@@ -31,7 +31,8 @@ def get_standard_networks(classes, imagesize):
     return {
         "VGG19": lambda: make_vgg_19(classes),
         "Resnet": lambda: make_resnet50(classes),
-        "ViT_b_16": lambda: make_vit_b_16(imagesize, classes)
+        "ViT_b_16": lambda: make_vit_b_16(imagesize, classes),
+        "Swin-tiny": lambda: make_swin_t(classes=classes)
     }
 
 def get_featurelike_networks(classes):
@@ -72,7 +73,8 @@ def train_and_validate(model_fun: Callable, train_data: Any,
     validation_results = {}
     for _ in range(repetitions):
         trainer = pl.Trainer(max_epochs=epochs, accelerator="gpu",
-                             logger=False, enable_checkpointing=False)
+                             logger=False, enable_checkpointing=False,
+                             check_val_every_n_epoch=epochs+1)
         model = model_fun()
         trainer.fit(model, train_data)
         for name, valset in validation_sets.items():

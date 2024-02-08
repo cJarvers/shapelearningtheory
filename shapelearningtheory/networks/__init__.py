@@ -1,5 +1,6 @@
 from torchvision.models.resnet import resnet50
 from torchvision.models.vgg import vgg19_bn
+from torchvision.models.swin_transformer import swin_t
 from .autoencoder import AutoEncoder
 from .convnet import SimpleConvNet, RecurrentConvNet
 from .linearnetworks import ShallowLinear, DeepLinear
@@ -125,3 +126,11 @@ def make_vgg_19(classes):
         lr=0.001
     )
     return vgg
+
+def make_swin_t(classes):
+    return TrainingWrapper(
+        net = swin_t(num_classes=classes),
+        loss_fun=torch.nn.functional.cross_entropy,
+        metric=Accuracy("multiclass", num_classes=classes),
+        lr=0.001
+    )
