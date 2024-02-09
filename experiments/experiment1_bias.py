@@ -1,5 +1,6 @@
 import argparse
 from matplotlib import pyplot as plt
+import pandas as pd
 import seaborn as sns
 import sys
 from statsmodels.stats.descriptivestats import sign_test
@@ -17,6 +18,44 @@ parser.add_argument("--repetitions", type=int, default=10)
 parser.add_argument("--epochs", type=int, default=30)
 parser.add_argument("--batchsize", type=int, default=128)
 parser.add_argument("--showlegend", action="store_true")
+
+def run_sign_test(data):
+    models = data["model"].unique()
+    datasets = data["dataset"].unique()
+    test_statistics = {"model": [], "dataset": [], "M": [], "p": [], "accuracy": []}
+    for model in models:
+        for dataset in datasets:
+            accuracies = data[(data["model"] == model) & (data["dataset"] == dataset)].loc[:, "accuracy"]
+            try:
+                M, p = sign_test(accuracies, 0.5)
+            except ValueError: # can arise if all values are exactly 0.5
+                M = 0
+                p = 1.0
+            test_statistics["model"].append(model)
+            test_statistics["dataset"].append(dataset)
+            test_statistics["M"].append(M)
+            test_statistics["p"].append(p)
+            test_statistics["accuracy"].append(accuracies.mean())
+    return pd.DataFrame(test_statistics)
+
+def mark_significance(ax, test_statistics):
+    num_bars = len(test_statistics["model"].unique())
+    for i, model in enumerate(test_statistics["model"].unique()):
+        for j, dataset in enumerate(test_statistics["dataset"].unique()):
+            idx = (test_statistics["model"] == model) & (test_statistics["dataset"] == dataset)
+            M = test_statistics.loc[idx, "M"].squeeze()
+            p = test_statistics.loc[idx, "p"].squeeze()
+            accuracy = test_statistics.loc[idx, "accuracy"].squeeze()
+            if p < 0.05:
+                x = j + (i - (num_bars - 1) / 2) / (num_bars + 1)
+                y = round(accuracy, 1) + 0.1
+                if y > 0.8: # better alignment for ceiling performance
+                    y = 1.1
+                if M > 0:
+                    ax.plot(x, y, "*", color="black")
+                else:
+                    ax.plot(x, y, "o", color="black")
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -69,19 +108,10 @@ if __name__ == "__main__":
         ax.legend(loc="lower left")
     fig.suptitle(f"Accuracy on {args.pattern} {args.shape}")
     # perform hypothesis tests
-    with open(figpath + "/sign_tests.txt", "w") as f:
-        for i, net in enumerate(models.keys()):
-            for j, dataset in enumerate(test_sets.keys()):
-                accuracies = df[(df["model"] == net) & (df["dataset"] == dataset)].loc[:, "accuracy"]
-                M, p = sign_test(accuracies, 0.5)
-                f.write(f"{net},  {dataset}:\t M = {M},\t p = {p}\n")
-                if p < 0.05:
-                    x = j + (i - 2) / 6
-                    y = round(accuracies.mean(), 1) + 0.1
-                    if y > 0.8: # better alignment for ceiling performance
-                        y = 1.1
-                    if M > 0:
-                        ax.plot(x, y, "*", color="black")
-                    else:
-                        ax.plot(x, y, "o", color="black")
+    test_statistics = run_sign_test(df)
+    test_statistics.to_csv(figpath + "/sign_tests.csv")
+    mark_significance(ax, test_statistics)
     plt.savefig(figpath + "/accuracy_barplot.png")
+
+
+            

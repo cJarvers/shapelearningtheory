@@ -8,6 +8,7 @@ sys.path.append("..")
 from shapelearningtheory.datasets import make_dataset
 from helpers import format_table, train_and_validate, unpack_results, get_basic_networks, \
     create_save_path, get_standard_networks
+from experiment1_bias import run_sign_test, mark_significance
 
 parser = argparse.ArgumentParser("Expermient 1: are neural networks biased to shape or color/texture?")
 parser.add_argument("--shape", type=str, default="rectangles", choices=["rectangles", "LvT"])
@@ -66,19 +67,7 @@ if __name__ == "__main__":
         ax.legend(loc="lower left")
     fig.suptitle(f"Accuracy on shape-only {args.shape}")
     # perform hypothesis tests
-    with open(figpath + "/sign_tests.txt", "w") as f:
-        for i, net in enumerate(models.keys()):
-            for j, dataset in enumerate(test_sets.keys()):
-                accuracies = df[(df["model"] == net) & (df["dataset"] == dataset)].loc[:, "accuracy"]
-                M, p = sign_test(accuracies, 0.5)
-                f.write(f"{net},  {dataset}:\t M = {M},\t p = {p}\n")
-                if p < 0.05:
-                    x = j + (i - 2) / 6
-                    y = round(accuracies.mean(), 1) + 0.1
-                    if y > 0.8: # better alignment for ceiling performance
-                        y = 1.1
-                    if M > 0:
-                        ax.plot(x, y, "*", color="black")
-                    else:
-                        ax.plot(x, y, "o", color="black")
+    test_statistics = run_sign_test(df)
+    test_statistics.to_csv(figpath + "/sign_tests.csv")
+    mark_significance(ax, test_statistics)
     plt.savefig(figpath + "/accuracy_barplot.png")
