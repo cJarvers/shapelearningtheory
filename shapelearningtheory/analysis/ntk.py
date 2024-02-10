@@ -26,8 +26,8 @@ def get_ntk(net: torch.nn.Module, data: torch.Tensor):
     ntk = empirical_ntk(functionalize(net), get_parameters(net), data)
     return ntk
 
-def get_ntk_similarity(net1, net2, data):
-    ntk1 = get_ntk(net1, data).flatten().unsqueeze(0)
-    ntk2 = get_ntk(net2, data).flatten().unsqueeze(0)
+def get_ntk_similarity(ntk1, ntk2):
+    ntk1 = ntk1.flatten().unsqueeze(0)
+    ntk2 = ntk2.flatten().unsqueeze(0)
     similarity = torch.cosine_similarity(ntk1, ntk2).item()
     return similarity

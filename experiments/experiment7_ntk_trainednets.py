@@ -57,19 +57,22 @@ class NTKSimilarityCallback(Callback):
     def __init__(self, data, reference_net, stepsize: int=1):
         self.data = data
         self.reference_net = reference_net
+        self.reference_ntk = get_ntk(reference_net, data).detach()
         self.stepsize = stepsize
         self.similarity = []
         self.batch_idx = []
 
+    @torch.no_grad()
     def on_train_batch_start(self, trainer: Trainer, pl_module: LightningModule, batch: Any, batch_idx: int) -> None:
         if batch_idx % self.stepsize == 0:
-            similarity = get_ntk_similarity(pl_module, self.reference_net, self.data)
+            similarity = get_ntk_similarity(get_ntk(pl_module, self.data), self.reference_ntk)
             self.similarity.append(similarity)
             self.batch_idx.append(batch_idx)
 
 def train_reference_net(nettype, epochs, **data_args):
     net = set_up_network(nettype)
-    trainer = Trainer(max_epochs=epochs, accelerator="gpu", logger=False, enable_checkpointing=False)
+    trainer = Trainer(max_epochs=epochs, accelerator="gpu", logger=False, enable_checkpointing=False,
+                      check_val_every_n_epoch=epochs+1)
     data = make_dataset(**data_args)
     trainer.fit(net, data)
     return net
@@ -109,9 +112,12 @@ if __name__ == "__main__":
         pattern_callback = NTKSimilarityCallback(eval_x.to(device="cuda"),
                                         patternnet.to(device="cuda"),
                                         args.eval_step_size)
+        random_callback = NTKSimilarityCallback(eval_x.to(device="cuda"),
+                                        net.to(device="cuda"),
+                                        args.eval_step_size)
         trainer = Trainer(max_epochs=args.epochs_main, accelerator="gpu",
                           logger=False, enable_checkpointing=False,
-                          callbacks=[shape_callback, pattern_callback])
+                          callbacks=[shape_callback, pattern_callback, random_callback])
         # train network
         trainer.fit(net, train_data)
         # store results
@@ -122,6 +128,10 @@ if __name__ == "__main__":
         )
         similarities.append(
             pd.DataFrame(zip(pattern_callback.similarity, [args.patternnet]*batches, [rep]*batches, pattern_callback.batch_idx),
+                         columns=["NTK similarity", args.nettype + " and:", "repetition", "training step"])
+        )
+        similarities.append(
+            pd.DataFrame(zip(random_callback.similarity, ["random"]*batches, [rep]*batches, random_callback.batch_idx),
                          columns=["NTK similarity", args.nettype + " and:", "repetition", "training step"])
         )
     similarities = pd.concat(similarities)

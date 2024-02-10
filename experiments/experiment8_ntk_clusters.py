@@ -42,7 +42,8 @@ def set_up_network(nettype: Literal["ConvNet", "spcConvNet"]):
     return net
 
 def train_reference_net(net, data, epochs):
-    trainer = Trainer(max_epochs=epochs, accelerator="gpu", logger=False, enable_checkpointing=False)
+    trainer = Trainer(max_epochs=epochs, accelerator="gpu", logger=False, enable_checkpointing=False,
+                      check_val_every_n_epoch=epochs+1)
     trainer.fit(net, data)
     return net
 
