@@ -54,10 +54,9 @@ def plot_ntks(ntk_pre, ntk_post, ntk_pattern, ntk_shape, args, title=""):
     return fig
 
 class NTKSimilarityCallback(Callback):
-    def __init__(self, data, reference_net, stepsize: int=1):
+    def __init__(self, data, reference_ntk, stepsize: int=1):
         self.data = data
-        self.reference_net = reference_net
-        self.reference_ntk = get_ntk(reference_net, data).detach()
+        self.reference_ntk = reference_ntk
         self.stepsize = stepsize
         self.similarity = []
         self.batch_idx = []
@@ -106,18 +105,19 @@ if __name__ == "__main__":
         # compute NTK for randomly initialized network
         ntk_pre = get_ntk(net, eval_x)
         # train
-        shape_callback = NTKSimilarityCallback(eval_x.to(device="cuda"),
-                                        shapenet.to(device="cuda"),
-                                        args.eval_step_size)
-        pattern_callback = NTKSimilarityCallback(eval_x.to(device="cuda"),
-                                        patternnet.to(device="cuda"),
-                                        args.eval_step_size)
-        random_callback = NTKSimilarityCallback(eval_x.to(device="cuda"),
-                                        net.to(device="cuda"),
-                                        args.eval_step_size)
+        eval_x_cuda = eval_x.to(device="cuda")
+        shape_callback = NTKSimilarityCallback(eval_x_cuda,
+            get_ntk(shapenet.to(device="cuda"), eval_x_cuda),
+            args.eval_step_size)
+        pattern_callback = NTKSimilarityCallback(eval_x_cuda,
+            get_ntk(patternnet.to(device="cuda"), eval_x_cuda),
+            args.eval_step_size)
+        label_callback = NTKSimilarityCallback(eval_x_cuda,
+            (eval_y.unsqueeze(0) == eval_y.unsqueeze(1)).to(eval_x_cuda.dtype).to("cuda"),
+            args.eval_step_size)
         trainer = Trainer(max_epochs=args.epochs_main, accelerator="gpu",
                           logger=False, enable_checkpointing=False,
-                          callbacks=[shape_callback, pattern_callback, random_callback])
+                          callbacks=[shape_callback, pattern_callback, label_callback])
         # train network
         trainer.fit(net, train_data)
         # store results
@@ -131,11 +131,12 @@ if __name__ == "__main__":
                          columns=["NTK similarity", args.nettype + " and:", "repetition", "training step"])
         )
         similarities.append(
-            pd.DataFrame(zip(random_callback.similarity, ["random"]*batches, [rep]*batches, random_callback.batch_idx),
+            pd.DataFrame(zip(label_callback.similarity, ["labels"]*batches, [rep]*batches, label_callback.batch_idx),
                          columns=["NTK similarity", args.nettype + " and:", "repetition", "training step"])
         )
     similarities = pd.concat(similarities)
     # plot results
+    similarities.to_csv(figpath + "/similarity_values.csv")
     plt.clf()
     sns.lineplot(similarities, x=similarities.index, y="NTK similarity", hue=args.nettype + " and:")
     plt.xlabel("training batch")
