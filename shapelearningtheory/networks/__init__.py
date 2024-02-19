@@ -33,7 +33,7 @@ def make_convnet_small(channels, classes):
     convnet = SimpleConvNet(
         in_channels=channels,
         channels_per_layer=[16, 32, 64],
-        kernel_sizes=[3,3,3],
+        kernel_sizes=[5,5,5],
         out_units=classes,
         loss_fun=torch.nn.functional.cross_entropy, 
         metric=Accuracy("multiclass", num_classes=2)
@@ -46,7 +46,7 @@ def make_rconvnet_small(channels, classes):
         in_channels=channels,
         out_units=classes,
         channels_per_layer=[16, 32, 64],
-        kernel_sizes=[3,3,3],
+        kernel_sizes=[5,5,5],
         num_steps=10,
         loss_fun=torch.nn.functional.cross_entropy, 
         metric=Accuracy("multiclass", num_classes=2)
@@ -60,8 +60,8 @@ def make_softmaxconv_small(channels, classes):
         in_channels=channels,
         out_units=classes,
         channels_per_layer=[16, 32, 64],
-        kernel_sizes=[3,3,3],
-        softmax_sizes=[7,7,7],
+        kernel_sizes=[5,5,5],
+        softmax_sizes=[9,9,9],
         version="cscl",
         loss_fun=torch.nn.functional.cross_entropy, 
         metric=Accuracy("multiclass", num_classes=2)

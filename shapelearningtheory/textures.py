@@ -57,7 +57,7 @@ class HorizontalGrating(SineGrating):
     """Horizontal grating with somewhat randomized frequency, phase, and orientation."""
     def __init__(self, frequency_min=0.05, frequency_max=0.15, orientation_range=torch.pi / 6):
         frequency = torch.rand(1).item() * (frequency_max - frequency_min) + frequency_min
-        orientation = torch.rand(1).item() * (2 * orientation_range) - orientation_range
+        orientation = torch.pi / 4 + torch.rand(1).item() * (2 * orientation_range) - orientation_range
         phase = 2 * torch.pi * torch.rand(1).item() / frequency
         super().__init__(frequency, orientation, phase)
 
@@ -65,7 +65,7 @@ class VerticalGrating(SineGrating):
     """Horizontal grating with somewhat randomized frequency, phase, and orientation."""
     def __init__(self, frequency_min=0.05, frequency_max=0.15, orientation_range=torch.pi / 6):
         frequency = torch.rand(1).item() * (frequency_max - frequency_min) + frequency_min
-        orientation = torch.pi / 2 + torch.rand(1).item() * (2 * orientation_range) - orientation_range
+        orientation = 3 * torch.pi / 4 + torch.rand(1).item() * (2 * orientation_range) - orientation_range
         phase = 2 * torch.pi * torch.rand(1).item() / frequency
         super().__init__(frequency, orientation, phase)
 

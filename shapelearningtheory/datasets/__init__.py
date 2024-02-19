@@ -51,7 +51,7 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
         else:
             lengths = range(7, 13)
             widths = range(7, 13)
-            strengths = range(1, 3)
+            strengths = range(3, 5)
     elif size == "eval":
         height = 18
         width = 18
@@ -63,7 +63,7 @@ def make_dataset(shape: Literal["rectangles", "LvT"],
         else:
             lengths=range(7, 13, 2)
             widths=range(7, 13, 3)
-            strengths = range(3, 4)
+            strengths = range(4, 5)
             stride=2
     else:
         height = 112
