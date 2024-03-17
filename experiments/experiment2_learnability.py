@@ -1,5 +1,6 @@
 import argparse
 from matplotlib import pyplot as plt
+import pytorch_lightning as L
 import seaborn as sns
 import sys
 from statsmodels.stats.descriptivestats import sign_test
@@ -17,9 +18,11 @@ parser.add_argument("--repetitions", type=int, default=10)
 parser.add_argument("--epochs", type=int, default=30)
 parser.add_argument("--batchsize", type=int, default=128)
 parser.add_argument("--showlegend", action="store_true")
+parser.add_argument("--random_seed", type=int, default=0)
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    L.seed_everything(args.random_seed)
     figpath = create_save_path("figures", "experiment_2", args.imgsize, args.shape)
     # get data:
     # training dataset

@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import os
 import sys
 import pandas as pd
+import pytorch_lightning as L
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import Callback
 import seaborn as sns
@@ -24,6 +25,7 @@ parser.add_argument("--repetitions", type=int, default=10)
 parser.add_argument("--epochs_main", type=int, default=10)
 parser.add_argument("--epochs_reference", type=int, default=30)
 parser.add_argument("--eval_step_size", type=int, default=1)
+parser.add_argument("--random_seed", type=int, default=0)
 
 def set_up_network(nettype: Literal["ConvNet", "spcConvNet"]):
     if nettype == "ConvNet":
@@ -80,6 +82,7 @@ def train_reference_net(nettype, epochs, **data_args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    L.seed_everything(args.random_seed)
     args.patternname = "color" if args.pattern == "color" else "texture"
     args.shapenet = "shape trained"
     args.patternnet = args.patternname + " trained"
