@@ -90,10 +90,12 @@ class RecurrentConvNet(SimpleConvNet):
         for c, k in zip(channels_per_layer, kernel_sizes):
             # generate forward layer
             block = RecurrentBlock(in_channels, c, k)
+            block = RecurrentBlock(in_channels, c, k)
             layers.append(block)
             in_channels = c
         layers.append(torch.nn.Flatten())
         layers.append(torch.nn.LazyLinear(out_units))
+        return layers
         return layers
 
     def forward(self, x):
