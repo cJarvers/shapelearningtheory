@@ -81,6 +81,7 @@ class RecurrentConvNet(SimpleConvNet):
             momentum=momentum,
             gamma=gamma)
         self.layers = self.build_layers(in_channels,
+        self.layers = self.build_layers(in_channels,
             channels_per_layer, kernel_sizes, out_units)
         self.num_steps = num_steps
 
@@ -103,9 +104,17 @@ class RecurrentConvNet(SimpleConvNet):
         for step in range(self.num_steps):
             forward_input = x
             for (i, layer) in enumerate(self.layers):
+            forward_input = x
+            for (i, layer) in enumerate(self.layers):
                 if step == 0:
                     layer_output = layer(forward_input)
+                    layer_output = layer(forward_input)
                 else:
+                    lateral_input = state[i]
+                    layer_output = layer(forward_input, lateral_input)
+                    state[i] = layer_output
+                forward_input = layer_output
+        return self.layers[-2:](layer_output)
                     lateral_input = state[i]
                     layer_output = layer(forward_input, lateral_input)
                     state[i] = layer_output
