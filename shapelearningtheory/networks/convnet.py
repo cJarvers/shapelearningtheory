@@ -37,6 +37,30 @@ class SimpleConvNet(TrainingWrapper):
     def __getitem__(self, idx):
         return self.layers[idx]
 
+class RecurrentBlock(torch.nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size):
+        self.forward_conv = torch.nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size, 
+            padding="same"
+        )
+        self.lateral_conv = torch.nn.Conv2d(
+            in_channels=out_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size, 
+            padding="same"
+        )
+        self.norm = torch.nn.GroupNorm(
+            out_channels, out_channels, affine=False
+        )
+        self.activation = torch.nn.GELU()
+
+    def forward(self, x, h_old):
+        h = self.forward_conv(x)
+        if h_old is not None:
+            h += self.lateral_conv(h_old)
+        return self.activation(self.norm(h))
 
 class RecurrentConvNet(SimpleConvNet):
     def __init__(self, channels_per_layer: List[int], kernel_sizes: List[int],
@@ -55,55 +79,35 @@ class RecurrentConvNet(SimpleConvNet):
             weight_decay=weight_decay,
             momentum=momentum,
             gamma=gamma)
-        self.layers, self.lateral = self.build_layers(in_channels,
+        self.layers = self.build_layers(in_channels,
             channels_per_layer, kernel_sizes, out_units)
         self.num_steps = num_steps
 
     def build_layers(self, in_channels, channels_per_layer, kernel_sizes,
             out_units):
-        # Generate self.layers as a Sequential like in SimpleConvNet.
-        # These are the forward layers (i.e., the filters used to
-        # pass information up between the recurrent units).
-        # Additionally, we generate a list self.lateral of layers
-        # which perform the recurrent filtering over time.
         layers = torch.nn.Sequential()
-        lateral = torch.nn.ModuleList()
         for c, k in zip(channels_per_layer, kernel_sizes):
             # generate forward layer
-            block = torch.nn.Sequential(
-                torch.nn.Conv2d(in_channels, c, k, padding="same"),
-                torch.nn.GroupNorm(c, c, affine=False),
-                torch.nn.GELU())
+            block = RecurrentBlock(in_channels, c, k)
             layers.append(block)
-            # generate lateral filters
-            lateral_block = torch.nn.Sequential(
-                torch.nn.Conv2d(c, c, k, padding="same"),
-                torch.nn.GroupNorm(c, c, affine=False),
-                torch.nn.GELU())
-            lateral.append(lateral_block)
             in_channels = c
         layers.append(torch.nn.Flatten())
         layers.append(torch.nn.LazyLinear(out_units))
-        return layers, lateral
+        return layers
 
     def forward(self, x):
         state = []
         for step in range(self.num_steps):
-            o = x
-            # iterate over conv layers (forward and lateral layer pairs)
-            for (i, (forward, lateral)) in enumerate(zip(self.layers, self.lateral)):
-                # on the first step, only run forward layers and record state
+            forward_input = x
+            for (i, layer) in enumerate(self.layers):
                 if step == 0:
-                    o = forward(o)
-                    state.append(o)
+                    layer_output = layer(forward_input)
                 else:
-                    h = forward(o)
-                    r = lateral(state[i])
-                    o = h + r # TODO: replace this by better formula
-                    state[i] = o # store output for next iteration
-        # after recurrent iterations finish, pass output of highest layer
-        # on to fully connected part
-        return self.layers[-2:](o)
+                    lateral_input = state[i]
+                    layer_output = layer(forward_input, lateral_input)
+                    state[i] = layer_output
+                forward_input = layer_output
+        return self.layers[-2:](layer_output)
 
 
 class RectangleLikeConvNet(TrainingWrapper):
