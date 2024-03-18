@@ -57,7 +57,7 @@ class RecurrentBlock(torch.nn.Module):
         )
         self.activation = torch.nn.GELU()
 
-    def forward(self, x, h_old):
+    def forward(self, x, h_old=None):
         h = self.forward_conv(x)
         if h_old is not None:
             h += self.lateral_conv(h_old)
@@ -80,7 +80,7 @@ class RecurrentConvNet(SimpleConvNet):
             weight_decay=weight_decay,
             momentum=momentum,
             gamma=gamma)
-        self.layers = self.build_layers(in_channels,
+        self.layers, self.head = self.build_layers(in_channels,
             channels_per_layer, kernel_sizes, out_units)
         self.num_steps = num_steps
 
@@ -92,9 +92,10 @@ class RecurrentConvNet(SimpleConvNet):
             block = RecurrentBlock(in_channels, c, k)
             layers.append(block)
             in_channels = c
-        layers.append(torch.nn.Flatten())
-        layers.append(torch.nn.LazyLinear(out_units))
-        return layers
+        head = torch.nn.Sequential()
+        head.append(torch.nn.Flatten())
+        head.append(torch.nn.LazyLinear(out_units))
+        return layers, head
 
     def forward(self, x):
         state = []
@@ -103,12 +104,13 @@ class RecurrentConvNet(SimpleConvNet):
             for (i, layer) in enumerate(self.layers):
                 if step == 0:
                     layer_output = layer(forward_input)
+                    state.append(layer_output)
                 else:
                     lateral_input = state[i]
                     layer_output = layer(forward_input, lateral_input)
                     state[i] = layer_output
                 forward_input = layer_output
-        return self.layers[-2:](layer_output)
+        return self.head(layer_output)
 
 
 class RectangleLikeConvNet(TrainingWrapper):
