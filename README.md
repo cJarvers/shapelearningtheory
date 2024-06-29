@@ -3,7 +3,7 @@ Theoretical investigation on why neural networks fail to learn shape perception
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10850391.svg)](https://doi.org/10.5281/zenodo.10850391)
 
-This code implements data generatino, experiments and analyses for the paper
+This code implements data generation, experiments and analyses for the paper
 Jarvers & Neumann (in preparation).
 Teaching deep networks to see shape: Lessons from a simplified visual world.
 
