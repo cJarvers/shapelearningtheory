@@ -4,7 +4,7 @@ from typing import Any, List, Type
 from pytorch_lightning import LightningDataModule
 # local imports
 from ..colors import Color, RandomRed, RandomBlue, Grey
-from ..shapes import Pixel, Orientation, Rectangle
+from ..old_shapes import Pixel, Orientation, Rectangle
 from ..textures import Texture
 from ..stimuli import Stimulus
 

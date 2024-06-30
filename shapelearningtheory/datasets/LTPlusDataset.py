@@ -6,7 +6,7 @@ from typing import Any, List, Type
 from ..colors import Color, Grey
 from ..textures import Texture
 from ..stimuli import Stimulus
-from ..shapes import LShape, TShape, PlusShape, Pixel
+from ..old_shapes import LShape, TShape, PlusShape, Pixel
 
 class LTPlusDataset(Dataset):
     """

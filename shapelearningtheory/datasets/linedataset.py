@@ -3,7 +3,7 @@ from torch.utils.data import Dataset, random_split, DataLoader
 from typing import List, Any, Type
 from pytorch_lightning import LightningDataModule
 # local imports:
-from ..shapes import Pixel, Orientation, Line
+from ..old_shapes import Pixel, Orientation, Line
 from ..colors import Color, White, RandomRed, RandomBlue, Grey
 from ..stimuli import Stimulus
 

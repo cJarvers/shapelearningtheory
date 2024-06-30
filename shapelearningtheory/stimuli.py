@@ -1,5 +1,5 @@
 from .colors import Color
-from .shapes import Shape
+from .old_shapes import Shape
 from .textures import Texture
 from typing import Optional
 

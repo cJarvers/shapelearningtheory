@@ -5,7 +5,7 @@ import torch
 # local imports
 from ..datasets.rectangledataset import RectangleDataset
 from ..datasets.LTPlusDataset import LTDataset
-from ..shapes import Orientation
+from ..old_shapes import Orientation
 from .helpers import get_activations_dataset
 ###############################
 # Functions to get RDM groups #
