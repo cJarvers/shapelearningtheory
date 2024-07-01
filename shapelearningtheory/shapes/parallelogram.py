@@ -9,10 +9,10 @@ class Parallelogram(Shape):
                  offset: Optional[float] = None, flip: Optional[bool] = None):
         super().__init__(x, y, width, height)
         if offset is None:
-            self.offset = random.random() * 0.25
+            self.offset = random.random() * 0.2 + 0.1
         else:
-            if offset < 0 or offset > 0.25:
-                raise ValueError("offset for a parallelogram should in interval [0, 0.25]")
+            if offset < 0.1 or offset > 0.3:
+                raise ValueError("offset for a parallelogram should in interval [0.1, 0.3]")
             self.offset = offset
         if flip is None:
             self.flip = random.random() > 0.5
