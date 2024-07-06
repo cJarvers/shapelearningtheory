@@ -1,7 +1,9 @@
 from PIL import Image, ImageDraw
 import random
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+from pytorch_lightning import LightningDataModule
 
 from ..shapes import *
 from ..color_set import ColorSet
@@ -51,7 +53,11 @@ class MultiShapeDataset(Dataset):
         return len(self.images)
 
     def __generate_images(self):
-        labels = torch.zeros(self.images_per_class * len(self.shape_classes))
+        image_transform = transforms.Compose([
+            transforms.PILToTensor(),
+            transforms.ConvertImageDtype(torch.float)
+        ])
+        labels = torch.zeros(self.images_per_class * len(self.shape_classes), dtype=torch.long)
         images = []
         for i in range(self.images_per_class):
             x, y, length, aspect = self.__generate_random_shape_parameters()
@@ -62,7 +68,7 @@ class MultiShapeDataset(Dataset):
                 canvas = ImageDraw.Draw(image)
                 color = self.color_set.sample(shape_idx)
                 shape(x, y, length, aspect).draw(canvas, color)
-                images.append(image)
+                images.append(image_transform(image))
         return images, labels
 
     def __generate_random_shape_parameters(self):
@@ -71,3 +77,38 @@ class MultiShapeDataset(Dataset):
         x = random.randint(1, self.image_size - length - 1)
         y = random.randint(1, self.image_size - length - 1)
         return x, y, length, aspect
+    
+
+class MultiShapeDataModule(LightningDataModule):
+    def __init__(self, image_size: int, images_per_class: int,
+                 batch_size: int = 32, num_workers: int = 4):
+        super().__init__()
+        self.image_size = image_size
+        self.images_per_class = images_per_class
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+
+    def prepare_data(self) -> None:
+        self.train = MultiShapeDataset(
+            image_size=self.image_size,
+            images_per_class=self.images_per_class)
+        self.val = MultiShapeDataset(
+            image_size=self.image_size,
+            images_per_class=self.images_per_class // 10
+        )
+        self.test = MultiShapeDataset(
+            image_size=self.image_size,
+            images_per_class=self.images_per_class
+        )
+
+    def train_dataloader(self):
+        return DataLoader(self.train, self.batch_size, shuffle=True,
+            num_workers=self.num_workers)
+    
+    def val_dataloader(self):
+        return DataLoader(self.val, self.batch_size, shuffle=False,
+            num_workers=self.num_workers)
+    
+    def test_dataloader(self):
+        return DataLoader(self.test, self.batch_size, shuffle=False,
+            num_workers=self.num_workers)
