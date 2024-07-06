@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 
 from ..shapes import *
 from ..color_set import ColorSet
+from ..colors import Color, RandomGrey
 
 default_shape_classes = [
     HorizontalRectangle,
@@ -34,11 +35,13 @@ class MultiShapeDataset(Dataset):
                  shape_classes: list[Shape] = default_shape_classes,
                  color_set: ColorSet = default_color_set,
                  image_size: int = 112,
-                 images_per_class: int = 1000):
+                 images_per_class: int = 1000,
+                 background_color: type[Color] = RandomGrey):
         self.shape_classes = shape_classes
         self.color_set = color_set
         self.image_size = image_size
         self.images_per_class = images_per_class
+        self.background_color = background_color
         self.images, self.labels = self.__generate_images()
 
     def __getitem__(self, index: int):
@@ -55,7 +58,7 @@ class MultiShapeDataset(Dataset):
             for shape_idx, shape in enumerate(self.shape_classes):
                 index = i * len(self.shape_classes) + shape_idx
                 labels[index] = shape_idx
-                image = Image.new("RGB", (self.image_size, self.image_size)) # TODO: Add background color
+                image = Image.new("RGB", (self.image_size, self.image_size), self.background_color().rgb_tuple())
                 canvas = ImageDraw.Draw(image)
                 color = self.color_set.sample(shape_idx)
                 shape(x, y, length, aspect).draw(canvas, color)

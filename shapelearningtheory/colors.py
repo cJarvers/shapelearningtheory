@@ -13,6 +13,11 @@ class Color:
     def fill_tensor(self, height, width) -> Tensor:
         img = torch.zeros((3, height, width))
         return img + self.color.reshape(3,1,1)
+    
+    def rgb_tuple(self) -> tuple[int, int, int]:
+        c = self.colorval().squeeze() * 255
+        c = c.to(torch.int32)
+        return c[0], c[1], c[2]
 
 ################################################
 # Color class set 1: reds vs. greens vs. blues #
