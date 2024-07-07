@@ -36,7 +36,7 @@ def make_convnet_small(channels, classes):
         kernel_sizes=[5,5,5],
         out_units=classes,
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=2)
+        metric=Accuracy("multiclass", num_classes=classes)
     )
     return convnet
 
@@ -49,7 +49,7 @@ def make_rconvnet_small(channels, classes):
         kernel_sizes=[5,5,5],
         num_steps=10,
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=2)
+        metric=Accuracy("multiclass", num_classes=classes)
     )
     return rconvnet
 
@@ -64,7 +64,7 @@ def make_softmaxconv_small(channels, classes):
         softmax_sizes=[9,9,9],
         version="cscl",
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=2)
+        metric=Accuracy("multiclass", num_classes=classes)
     )
     return softmaxconv
 
@@ -79,7 +79,7 @@ def make_ViT_small(imgsize, classes):
         hidden_dim=128,
         mlp_dim=1024,
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=2)
+        metric=Accuracy("multiclass", num_classes=classes)
     )
     return vit
 
@@ -113,7 +113,7 @@ def make_vit_b_16(imgsize, classes):
         hidden_dim=768,
         mlp_dim=3072,
         loss_fun=torch.nn.functional.cross_entropy, 
-        metric=Accuracy("multiclass", num_classes=2),
+        metric=Accuracy("multiclass", num_classes=classes),
         lr=0.001
     )
     return vit
