@@ -6,7 +6,7 @@ from torchvision import transforms
 from pytorch_lightning import LightningDataModule
 
 from ..shapes import *
-from ..color_set import ColorSet
+from ..color_set import ColorSet, RandomColorSet
 from ..colors import Color, RandomGrey
 
 default_shape_classes = [
@@ -81,10 +81,14 @@ class MultiShapeDataset(Dataset):
 
 class MultiShapeDataModule(LightningDataModule):
     def __init__(self, image_size: int, images_per_class: int,
+                 validation_images_per_class: int = 100,
+                 test_images_per_class: int = 1000,
                  batch_size: int = 32, num_workers: int = 4):
         super().__init__()
         self.image_size = image_size
         self.images_per_class = images_per_class
+        self.validation_images_per_class = validation_images_per_class
+        self.test_images_per_class = test_images_per_class
         self.batch_size = batch_size
         self.num_workers = num_workers
 
@@ -94,11 +98,26 @@ class MultiShapeDataModule(LightningDataModule):
             images_per_class=self.images_per_class)
         self.val = MultiShapeDataset(
             image_size=self.image_size,
-            images_per_class=self.images_per_class // 10
+            images_per_class=self.validation_images_per_class
         )
         self.test = MultiShapeDataset(
             image_size=self.image_size,
-            images_per_class=self.images_per_class
+            images_per_class=self.test_images_per_class
+        )
+        self.conflict_test_set = MultiShapeDataset(
+            color_set=ColorSet(default_color_set.number_of_classes, default_color_set.hues_per_class),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.random_color_test_set = MultiShapeDataset(
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.random_shape_test_set = MultiShapeDataset(
+            shape_classes=RandomShapeSelector(default_shape_classes),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
         )
 
     def train_dataloader(self):
@@ -111,4 +130,16 @@ class MultiShapeDataModule(LightningDataModule):
     
     def test_dataloader(self):
         return DataLoader(self.test, self.batch_size, shuffle=False,
+            num_workers=self.num_workers)
+    
+    def conflict_dataloader(self):
+        return DataLoader(self.conflict_test_set, self.batch_size, shuffle=False,
+            num_workers=self.num_workers)
+    
+    def random_color_dataloader(self):
+        return DataLoader(self.random_color_test_set, self.batch_size, shuffle=False,
+            num_workers=self.num_workers)
+    
+    def random_shape_dataloader(self):
+        return DataLoader(self.random_shape_test_set, self.batch_size, shuffle=False,
             num_workers=self.num_workers)

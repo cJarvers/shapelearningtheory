@@ -22,3 +22,16 @@ class ColorSet:
 
 def float_to_int_color(f: float):
     return floor(f * 255)
+
+
+class RandomColorSet(ColorSet):
+    """Behaves like a ColorSet, but returns a random color each time."""
+    def __init__(self):
+        pass
+
+    def sample(self, class_index):
+        hue = np.random.rand()
+        saturation = np.random.rand() / 2 + 0.5
+        intensity = np.random.rand() / 2 + 0.5
+        r, g, b = colorsys.hsv_to_rgb(hue, saturation, intensity)
+        return float_to_int_color(r), float_to_int_color(g), float_to_int_color(b)
