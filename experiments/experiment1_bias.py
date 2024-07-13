@@ -21,7 +21,7 @@ parser.add_argument("--batchsize", type=int, default=128)
 parser.add_argument("--showlegend", action="store_true")
 parser.add_argument("--random_seed", type=int, default=0)
 
-def run_sign_test(data):
+def run_sign_test(data, chance_level: float = 0.5):
     models = data["model"].unique()
     datasets = data["dataset"].unique()
     test_statistics = {"model": [], "dataset": [], "M": [], "p": [], "accuracy": []}
@@ -29,8 +29,8 @@ def run_sign_test(data):
         for dataset in datasets:
             accuracies = data[(data["model"] == model) & (data["dataset"] == dataset)].loc[:, "accuracy"]
             try:
-                M, p = sign_test(accuracies, 0.5)
-            except ValueError: # can arise if all values are exactly 0.5
+                M, p = sign_test(accuracies, chance_level)
+            except ValueError: # can arise if all values are exactly at chance_level
                 M = 0
                 p = 1.0
             test_statistics["model"].append(model)
