@@ -104,11 +104,6 @@ class MultiShapeDataModule(LightningDataModule):
             image_size=self.image_size,
             images_per_class=self.test_images_per_class
         )
-        self.conflict_test_set = MultiShapeDataset(
-            color_set=ColorSet(default_color_set.number_of_classes, default_color_set.hues_per_class),
-            image_size=self.image_size,
-            images_per_class=self.test_images_per_class
-        )
         self.random_color_test_set = MultiShapeDataset(
             color_set=RandomColorSet(),
             image_size=self.image_size,
@@ -132,10 +127,6 @@ class MultiShapeDataModule(LightningDataModule):
         return DataLoader(self.test, self.batch_size, shuffle=False,
             num_workers=self.num_workers)
     
-    def conflict_dataloader(self):
-        return DataLoader(self.conflict_test_set, self.batch_size, shuffle=False,
-            num_workers=self.num_workers)
-    
     def random_color_dataloader(self):
         return DataLoader(self.random_color_test_set, self.batch_size, shuffle=False,
             num_workers=self.num_workers)
@@ -143,3 +134,136 @@ class MultiShapeDataModule(LightningDataModule):
     def random_shape_dataloader(self):
         return DataLoader(self.random_shape_test_set, self.batch_size, shuffle=False,
             num_workers=self.num_workers)
+    
+
+class MultiShapeDataModuleWithRandomColors(MultiShapeDataModule):
+    """Generates 10 classes. Shape classes are the same as with the normal MultiShapeDataModule,
+    but colors are chosen randomly for each image and contain no information about image class."""
+    def prepare_data(self) -> None:
+        self.train = MultiShapeDataset(
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.images_per_class)
+        self.val = MultiShapeDataset(
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.validation_images_per_class)
+        self.test = MultiShapeDataset(
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.random_shape_test_set = MultiShapeDataset(
+            shape_classes=RandomShapeSelector(default_shape_classes),
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+
+    def random_color_dataloader(self):
+        raise NotImplementedError("This dataset uses random colors by default. Use .test_dataloader() instead of this method.")
+
+
+class MultiShapeDataModuleWithRandomShape(MultiShapeDataModule):
+    """Generates 10 classes with different color profiles, like the MultiShapeDataModule. However, object shape
+    is chosen randomly in each image and contains no information about image class."""
+    def prepare_data(self) -> None:
+        self.train = MultiShapeDataset(
+            shape_classes = RandomShapeSelector(default_shape_classes),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.val = MultiShapeDataset(
+            shape_classes = RandomShapeSelector(default_shape_classes),
+            image_size=self.image_size,
+            images_per_class=self.validation_images_per_class
+        )
+        self.test = MultiShapeDataset(
+            shape_classes = RandomShapeSelector(default_shape_classes),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.random_color_test_set = MultiShapeDataset(
+            shape_classes=RandomShapeSelector(default_shape_classes),
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+
+    def random_shape_dataloader(self):
+        raise NotImplementedError("This dataset uses random shapes by default. Use .test_dataloader() instead of this method.")
+
+
+class MultiShapeDataModuleWithRandomColorIgnoringOrientation(MultiShapeDataModule):
+    """"""
+    def prepare_data(self) -> None:
+        shape_classes = ShapeSet([
+            [HorizontalRectangle, VerticalRectangle],
+            [HorizontalEllipse, VerticalEllipse],
+            [HorizontalCross, VerticalCross],
+            [HorizontalTriangle, VerticalTriangle],
+            [HorizontalParallelogram, VerticalParallelogram]
+        ])
+        self.train = MultiShapeDataset(
+            shape_classes = shape_classes,
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.val = MultiShapeDataset(
+            shape_classes = shape_classes,
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.validation_images_per_class
+        )
+        self.test = MultiShapeDataset(
+            shape_classes = shape_classes,
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.random_shape_test_set = MultiShapeDataset(
+            shape_classes=RandomShapeSelector(shape_classes),
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+
+    def random_color_dataloader(self):
+        raise NotImplementedError("This dataset uses random colors by default. Use .test_dataloader() instead of this method.")
+
+
+class MultiShapeDataModuleWithRandomColorIgnoringShapeType(MultiShapeDataModule):
+    """"""
+    def prepare_data(self) -> None:
+        shape_classes = ShapeSet([
+            [HorizontalRectangle, HorizontalEllipse, HorizontalCross, HorizontalTriangle, HorizontalParallelogram],
+            [VerticalRectangle, VerticalEllipse, VerticalCross, VerticalTriangle, VerticalParallelogram],
+        ])
+        self.train = MultiShapeDataset(
+            shape_classes = shape_classes,
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.val = MultiShapeDataset(
+            shape_classes = shape_classes,
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.validation_images_per_class
+        )
+        self.test = MultiShapeDataset(
+            shape_classes = shape_classes,
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+        self.random_shape_test_set = MultiShapeDataset(
+            shape_classes=RandomShapeSelector(shape_classes),
+            color_set=RandomColorSet(),
+            image_size=self.image_size,
+            images_per_class=self.test_images_per_class
+        )
+
+    def random_color_dataloader(self):
+        raise NotImplementedError("This dataset uses random colors by default. Use .test_dataloader() instead of this method.")

@@ -4,4 +4,5 @@ from .parallelogram import Parallelogram, HorizontalParallelogram, VerticalParal
 from .rectangle import Rectangle, HorizontalRectangle, VerticalRectangle
 from .random_shape_selector import RandomShapeSelector
 from .shape import Shape
+from .shape_set import ShapeSet
 from .triangle import Triangle, HorizontalTriangle, VerticalTriangle

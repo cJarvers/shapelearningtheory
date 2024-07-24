@@ -31,8 +31,7 @@ if __name__ == "__main__":
     test_sets = {
         "validation": dataset.test_dataloader(),
         "random shape": dataset.random_shape_dataloader(),
-        "random color": dataset.random_color_dataloader(),
-        #"conflict": dataset.conflict_dataloader()
+        "random color": dataset.random_color_dataloader()
     }
 
     # hyperparameters from dataset
