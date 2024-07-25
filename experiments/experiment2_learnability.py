@@ -19,11 +19,13 @@ parser.add_argument("--epochs", type=int, default=30)
 parser.add_argument("--batchsize", type=int, default=128)
 parser.add_argument("--showlegend", action="store_true")
 parser.add_argument("--random_seed", type=int, default=0)
+parser.add_argument("--pretrained", action="store_true", help="For large images, choose whether to use pretrained weights from torchvision")
 
 if __name__ == "__main__":
     args = parser.parse_args()
     L.seed_everything(args.random_seed)
-    figpath = create_save_path("figures", "experiment_2", args.imgsize, args.shape)
+    pretrain_folder = "pre_imgnet" if args.pretrained else "from_scratch"
+    figpath = create_save_path("figures", "experiment_2", args.imgsize, pretrain_folder, args.shape)
     # get data:
     # training dataset
     traindata = make_dataset(args.shape, "color", args.imgsize, "shapeonly", batchsize=args.batchsize)
@@ -46,7 +48,7 @@ if __name__ == "__main__":
     if args.imgsize == "small":
         models = get_basic_networks(classes, channels, imagesize)
     else:
-        models = get_standard_networks(classes, imagesize)
+        models = get_standard_networks(classes, imagesize, args.pretrained)
 
     # train and test
     test_results = {}

@@ -27,12 +27,12 @@ def get_basic_networks(classes, channels, imagesize):
         #"autoencoder": lambda: make_AE_small(num_inputs=imagesize * imagesize * channels, classes=classes)
     }
 
-def get_standard_networks(classes, imagesize):
+def get_standard_networks(classes, imagesize, pretrained=False):
     return {
-        "VGG19": lambda: make_vgg_19(classes),
-        "Resnet": lambda: make_resnet50(classes),
-        "ViT_b_16": lambda: make_vit_b_16(imagesize, classes),
-        "Swin-tiny": lambda: make_swin_t(classes=classes)
+        "VGG19": lambda: make_vgg_19(classes, pretrained),
+        "Resnet": lambda: make_resnet50(classes, pretrained),
+        "ViT_b_16": lambda: make_vit_b_16(imagesize, classes, pretrained),
+        "Swin-tiny": lambda: make_swin_t(classes, pretrained)
     }
 
 def get_featurelike_networks(classes):
