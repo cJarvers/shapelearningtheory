@@ -20,6 +20,7 @@ parser.add_argument("--epochs", type=int, default=30)
 parser.add_argument("--batchsize", type=int, default=128)
 parser.add_argument("--showlegend", action="store_true")
 parser.add_argument("--random_seed", type=int, default=0)
+parser.add_argument("--pretrained", action="store_true", help="For large images, choose whether to use pretrained weights from torchvision")
 
 def run_sign_test(data, chance_level: float = 0.5):
     models = data["model"].unique()
@@ -63,7 +64,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     L.seed_everything(args.random_seed)
     patternonly = "color only" if args.pattern == "color" else "texture only"
-    figpath = create_save_path("figures", "experiment_1", args.imgsize, args.shape, args.pattern)
+    pretrain_folder = "pre_imgnet" if args.pretrained else "from_scratch"
+    figpath = create_save_path("figures", "experiment_1", args.imgsize, pretrain_folder, args.shape, args.pattern)
     # get data:
     # training dataset
     traindata = make_dataset(args.shape, args.pattern, args.imgsize, "standard", batchsize=args.batchsize)
@@ -87,7 +89,7 @@ if __name__ == "__main__":
     if args.imgsize == "small":
         models = get_basic_networks(classes, channels, imagesize)
     else:
-        models = get_standard_networks(classes, imagesize)
+        models = get_standard_networks(classes, imagesize, args.pretrained)
 
     # train and test
     test_results = {}
