@@ -111,7 +111,7 @@ def make_resnet50(classes, pretrained=False):
     )
     return net
 
-def make_vit_b_16(imgsize, classes, pretrained=False):
+def make_vit_b_16(imgsize, classes, pretrained=False, **kwargs):
     if pretrained:
         net = vit_b_16(image_size=224, weights="IMAGENET1K_V1")
         net.image_size = imgsize
@@ -121,11 +121,12 @@ def make_vit_b_16(imgsize, classes, pretrained=False):
         net.heads.head = torch.nn.Linear(768, 2)
     else:
         net = vit_b_16(image_size=imgsize, num_classes=classes)
+    kwargs.setdefault('lr', 0.001)
     vit = TrainingWrapper(
         net = net,
         loss_fun=torch.nn.functional.cross_entropy, 
         metric=Accuracy("multiclass", num_classes=classes),
-        lr=0.001
+        **kwargs
     )
     return vit
 
