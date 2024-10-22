@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["shapelearningtheory*"]
+namespaces = false
+
+
+[project]
+name = "shapelearningtheory"
+version = "0.0.1"
+authors = [
+  { name="Christian Jarvers", email="christian.jarvers@gmx.de" },
+]
+description = "Experiments about learning of visual shape properties in deep neural networks."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "torch>=2.1.0",
+    "torchvision>=0.16.0",
+    "torchmetrics>=1.3.1",
+    "pytorch_lightning>=2.2.0",
+    "Pillow>=9.2.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/cJarvers/shapelearningtheory"
+Issues = "https://github.com/cJarvers/shapelearningtheory/issues"
